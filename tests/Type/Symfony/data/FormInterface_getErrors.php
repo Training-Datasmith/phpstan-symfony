@@ -1,9 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
+use function PHPStan\Testing\assertType;
 
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormErrorIterator;
 use Symfony\Component\Form\FormInterface;
-use function PHPStan\Testing\assertType;
 
 /** @var FormInterface $form */
 $form = new stdClass();

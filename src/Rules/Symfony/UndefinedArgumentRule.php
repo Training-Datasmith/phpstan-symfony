@@ -1,6 +1,10 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Rules\Symfony;
+
+use function count;
 
 use InvalidArgumentException;
 use PhpParser\Node;
@@ -12,7 +16,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Symfony\ConsoleApplicationResolver;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Symfony\Helper;
-use function count;
+
 use function sprintf;
 
 /**
@@ -20,65 +24,64 @@ use function sprintf;
  */
 final class UndefinedArgumentRule implements Rule
 {
+    private ConsoleApplicationResolver $consoleApplicationResolver;
 
-	private ConsoleApplicationResolver $consoleApplicationResolver;
+    private Printer $printer;
 
-	private Printer $printer;
+    public function __construct(ConsoleApplicationResolver $consoleApplicationResolver, Printer $printer)
+    {
+        $this->consoleApplicationResolver = $consoleApplicationResolver;
+        $this->printer = $printer;
+    }
 
-	public function __construct(ConsoleApplicationResolver $consoleApplicationResolver, Printer $printer)
-	{
-		$this->consoleApplicationResolver = $consoleApplicationResolver;
-		$this->printer = $printer;
-	}
+    public function getNodeType(): string
+    {
+        return MethodCall::class;
+    }
 
-	public function getNodeType(): string
-	{
-		return MethodCall::class;
-	}
+    public function processNode(Node $node, Scope $scope): array
+    {
+        $classReflection = $scope->getClassReflection();
+        if ($classReflection === null) {
+            return [];
+        }
 
-	public function processNode(Node $node, Scope $scope): array
-	{
-		$classReflection = $scope->getClassReflection();
-		if ($classReflection === null) {
-			return [];
-		}
+        if (!(new ObjectType(\Symfony\Component\Console\Command\Command::class))->isSuperTypeOf(new ObjectType($classReflection->getName()))->yes()) {
+            return [];
+        }
+        if (!(new ObjectType(\Symfony\Component\Console\Input\InputInterface::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
+            return [];
+        }
+        if (!$node->name instanceof Node\Identifier || $node->name->name !== 'getArgument') {
+            return [];
+        }
+        if (!isset($node->getArgs()[0])) {
+            return [];
+        }
 
-		if (!(new ObjectType(\Symfony\Component\Console\Command\Command::class))->isSuperTypeOf(new ObjectType($classReflection->getName()))->yes()) {
-			return [];
-		}
-		if (!(new ObjectType(\Symfony\Component\Console\Input\InputInterface::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
-			return [];
-		}
-		if (!$node->name instanceof Node\Identifier || $node->name->name !== 'getArgument') {
-			return [];
-		}
-		if (!isset($node->getArgs()[0])) {
-			return [];
-		}
+        $argType = $scope->getType($node->getArgs()[0]->value);
+        $argStrings = $argType->getConstantStrings();
+        if (count($argStrings) !== 1) {
+            return [];
+        }
+        $argName = $argStrings[0]->getValue();
 
-		$argType = $scope->getType($node->getArgs()[0]->value);
-		$argStrings = $argType->getConstantStrings();
-		if (count($argStrings) !== 1) {
-			return [];
-		}
-		$argName = $argStrings[0]->getValue();
+        $errors = [];
+        foreach ($this->consoleApplicationResolver->findCommands($classReflection) as $name => $command) {
+            try {
+                $command->mergeApplicationDefinition();
+                $command->getDefinition()->getArgument($argName);
+            } catch (InvalidArgumentException $e) {
+                if ($scope->getType(Helper::createMarkerNode($node->var, $argType, $this->printer))->equals($argType)) {
+                    continue;
+                }
+                $errors[] = RuleErrorBuilder::message(sprintf('Command "%s" does not define argument "%s".', $name, $argName))
+                    ->identifier('symfonyConsole.argumentNotFound')
+                    ->build();
+            }
+        }
 
-		$errors = [];
-		foreach ($this->consoleApplicationResolver->findCommands($classReflection) as $name => $command) {
-			try {
-				$command->mergeApplicationDefinition();
-				$command->getDefinition()->getArgument($argName);
-			} catch (InvalidArgumentException $e) {
-				if ($scope->getType(Helper::createMarkerNode($node->var, $argType, $this->printer))->equals($argType)) {
-					continue;
-				}
-				$errors[] = RuleErrorBuilder::message(sprintf('Command "%s" does not define argument "%s".', $name, $argName))
-					->identifier('symfonyConsole.argumentNotFound')
-					->build();
-			}
-		}
-
-		return $errors;
-	}
+        return $errors;
+    }
 
 }

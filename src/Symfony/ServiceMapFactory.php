@@ -1,10 +1,11 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Symfony;
 
 interface ServiceMapFactory
 {
-
-	public function create(): ServiceMap;
+    public function create(): ServiceMap;
 
 }

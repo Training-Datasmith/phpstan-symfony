@@ -1,6 +1,10 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace GenericFormDataType;
+
+use function PHPStan\Testing\assertType;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\AbstractType;
@@ -9,16 +13,14 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use function PHPStan\Testing\assertType;
 
 class DataClass
 {
+    /** @var int */
+    public $foo;
 
-	/** @var int */
-	public $foo;
-
-	/** @var string */
-	public $bar;
+    /** @var string */
+    public $bar;
 
 }
 
@@ -27,67 +29,64 @@ class DataClass
  */
 class DataClassType extends AbstractType
 {
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        assertType('GenericFormDataType\DataClass|null', $builder->getData());
+        assertType('GenericFormDataType\DataClass|null', $builder->getForm()->getData());
 
-	public function buildForm(FormBuilderInterface $builder, array $options): void
-	{
-		assertType('GenericFormDataType\DataClass|null', $builder->getData());
-		assertType('GenericFormDataType\DataClass|null', $builder->getForm()->getData());
+        $builder
+            ->add('foo', NumberType::class)
+            ->add('bar', TextType::class)
+        ;
+    }
 
-		$builder
-			->add('foo', NumberType::class)
-			->add('bar', TextType::class)
-		;
-	}
-
-	public function configureOptions(OptionsResolver $resolver): void
-	{
-		$resolver
-			->setDefaults([
-				'data_class' => DataClass::class,
-			])
-		;
-	}
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver
+            ->setDefaults([
+                'data_class' => DataClass::class,
+            ])
+        ;
+    }
 
 }
 
 class FormFactoryAwareClass
 {
+    /** @var FormFactoryInterface */
+    private $formFactory;
 
-	/** @var FormFactoryInterface */
-	private $formFactory;
+    public function __construct(FormFactoryInterface $formFactory)
+    {
+        $this->formFactory = $formFactory;
+    }
 
-	public function __construct(FormFactoryInterface $formFactory)
-	{
-		$this->formFactory = $formFactory;
-	}
+    public function doSomething(): void
+    {
+        $form = $this->formFactory->create(DataClassType::class, new DataClass());
+        assertType('GenericFormDataType\DataClass', $form->getData());
+    }
 
-	public function doSomething(): void
-	{
-		$form = $this->formFactory->create(DataClassType::class, new DataClass());
-		assertType('GenericFormDataType\DataClass', $form->getData());
-	}
-
-	public function doSomethingNullable(): void
-	{
-		$form = $this->formFactory->create(DataClassType::class);
-		assertType('GenericFormDataType\DataClass|null', $form->getData());
-	}
+    public function doSomethingNullable(): void
+    {
+        $form = $this->formFactory->create(DataClassType::class);
+        assertType('GenericFormDataType\DataClass|null', $form->getData());
+    }
 
 }
 
 class FormController extends AbstractController
 {
+    public function doSomething(): void
+    {
+        $form = $this->createForm(DataClassType::class, new DataClass());
+        assertType('GenericFormDataType\DataClass', $form->getData());
+    }
 
-	public function doSomething(): void
-	{
-		$form = $this->createForm(DataClassType::class, new DataClass());
-		assertType('GenericFormDataType\DataClass', $form->getData());
-	}
-
-	public function doSomethingNullable(): void
-	{
-		$form = $this->createForm(DataClassType::class);
-		assertType('GenericFormDataType\DataClass|null', $form->getData());
-	}
+    public function doSomethingNullable(): void
+    {
+        $form = $this->createForm(DataClassType::class);
+        assertType('GenericFormDataType\DataClass|null', $form->getData());
+    }
 
 }

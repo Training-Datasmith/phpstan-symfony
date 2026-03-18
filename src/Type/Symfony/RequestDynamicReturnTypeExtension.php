@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Type\Symfony;
 
@@ -13,39 +15,37 @@ use PHPStan\Type\Type;
 
 final class RequestDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
+    public function getClass(): string
+    {
+        return 'Symfony\Component\HttpFoundation\Request';
+    }
 
-	public function getClass(): string
-	{
-		return 'Symfony\Component\HttpFoundation\Request';
-	}
+    public function isMethodSupported(MethodReflection $methodReflection): bool
+    {
+        return $methodReflection->getName() === 'getContent';
+    }
 
-	public function isMethodSupported(MethodReflection $methodReflection): bool
-	{
-		return $methodReflection->getName() === 'getContent';
-	}
+    public function getTypeFromMethodCall(
+        MethodReflection $methodReflection,
+        MethodCall $methodCall,
+        Scope $scope
+    ): ?Type {
+        if (!isset($methodCall->getArgs()[0])) {
+            return new StringType();
+        }
 
-	public function getTypeFromMethodCall(
-		MethodReflection $methodReflection,
-		MethodCall $methodCall,
-		Scope $scope
-	): ?Type
-	{
-		if (!isset($methodCall->getArgs()[0])) {
-			return new StringType();
-		}
+        $argType = $scope->getType($methodCall->getArgs()[0]->value);
+        $isTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($argType)->result;
+        $isFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($argType)->result;
+        $compareTypes = $isTrueType->compareTo($isFalseType);
+        if ($compareTypes === $isTrueType) {
+            return new ResourceType();
+        }
+        if ($compareTypes === $isFalseType) {
+            return new StringType();
+        }
 
-		$argType = $scope->getType($methodCall->getArgs()[0]->value);
-		$isTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($argType)->result;
-		$isFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($argType)->result;
-		$compareTypes = $isTrueType->compareTo($isFalseType);
-		if ($compareTypes === $isTrueType) {
-			return new ResourceType();
-		}
-		if ($compareTypes === $isFalseType) {
-			return new StringType();
-		}
-
-		return null;
-	}
+        return null;
+    }
 
 }

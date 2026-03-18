@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Symfony;
 
@@ -7,23 +9,22 @@ use PHPStan\Analyser\Scope;
 
 final class FakeParameterMap implements ParameterMap
 {
+    /**
+     * @return ParameterDefinition[]
+     */
+    public function getParameters(): array
+    {
+        return [];
+    }
 
-	/**
-	 * @return ParameterDefinition[]
-	 */
-	public function getParameters(): array
-	{
-		return [];
-	}
+    public function getParameter(string $key): ?ParameterDefinition
+    {
+        return null;
+    }
 
-	public function getParameter(string $key): ?ParameterDefinition
-	{
-		return null;
-	}
-
-	public static function getParameterKeysFromNode(Expr $node, Scope $scope): array
-	{
-		return [];
-	}
+    public static function getParameterKeysFromNode(Expr $node, Scope $scope): array
+    {
+        return [];
+    }
 
 }

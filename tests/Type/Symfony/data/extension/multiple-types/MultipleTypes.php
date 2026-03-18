@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PHPStan\Type\Symfony\Extension\MultipleTypes;
 
 use PHPStan\Type\Symfony\Extension\WithConfiguration\WithConfigurationExtension;
@@ -11,8 +13,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  */
 function test($extension, array $configs, ContainerBuilder $container)
 {
-	\PHPStan\Testing\assertType(
-		'PHPStan\Type\Symfony\Extension\WithConfiguration\Configuration|null',
-		$extension->getConfiguration($configs, $container)
-	);
+    \PHPStan\Testing\assertType(
+        'PHPStan\Type\Symfony\Extension\WithConfiguration\Configuration|null',
+        $extension->getConfiguration($configs, $container)
+    );
 }

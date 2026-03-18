@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Symfony;
 
@@ -8,28 +10,26 @@ use PHPStan\PhpDoc\StubFilesExtension;
 
 class InputBagStubFilesExtension implements StubFilesExtension
 {
+    private Reflector $reflector;
 
-	private Reflector $reflector;
+    public function __construct(
+        Reflector $reflector
+    ) {
+        $this->reflector = $reflector;
+    }
 
-	public function __construct(
-		Reflector $reflector
-	)
-	{
-		$this->reflector = $reflector;
-	}
+    public function getFiles(): array
+    {
+        try {
+            $this->reflector->reflectClass('Symfony\Component\HttpFoundation\InputBag');
+        } catch (IdentifierNotFound $e) {
+            return [];
+        }
 
-	public function getFiles(): array
-	{
-		try {
-			$this->reflector->reflectClass('Symfony\Component\HttpFoundation\InputBag');
-		} catch (IdentifierNotFound $e) {
-			return [];
-		}
-
-		return [
-			__DIR__ . '/../../stubs/Symfony/Component/HttpFoundation/InputBag.stub',
-			__DIR__ . '/../../stubs/Symfony/Component/HttpFoundation/Request.stub',
-		];
-	}
+        return [
+            __DIR__ . '/../../stubs/Symfony/Component/HttpFoundation/InputBag.stub',
+            __DIR__ . '/../../stubs/Symfony/Component/HttpFoundation/Request.stub',
+        ];
+    }
 
 }

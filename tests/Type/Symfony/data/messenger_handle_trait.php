@@ -1,12 +1,19 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace MessengerHandleTrait;
 
-use Symfony\Component\Messenger\HandleTrait;
 use function PHPStan\Testing\assertType;
 
-class RegularQuery {}
-class RegularQueryResult {}
+use Symfony\Component\Messenger\HandleTrait;
+
+class RegularQuery
+{
+}
+class RegularQueryResult
+{
+}
 class RegularQueryHandler
 {
     public function __invoke(RegularQuery $query): RegularQueryResult
@@ -15,8 +22,12 @@ class RegularQueryHandler
     }
 }
 
-class TaggedQuery {}
-class TaggedResult {}
+class TaggedQuery
+{
+}
+class TaggedResult
+{
+}
 class TaggedHandler
 {
     public function handle(TaggedQuery $query): TaggedResult
@@ -25,7 +36,9 @@ class TaggedHandler
     }
 }
 
-class MultiHandlersForTheSameMessageQuery {}
+class MultiHandlersForTheSameMessageQuery
+{
+}
 class MultiHandlersForTheSameMessageHandler1
 {
     public function __invoke(MultiHandlersForTheSameMessageQuery $query): bool
@@ -41,7 +54,8 @@ class MultiHandlersForTheSameMessageHandler2
     }
 }
 
-class HandleTraitClass {
+class HandleTraitClass
+{
     use HandleTrait;
 
     public function __invoke()
@@ -50,15 +64,16 @@ class HandleTraitClass {
 
         assertType(TaggedResult::class, $this->handle(new TaggedQuery()));
 
-		$randomQuery = rand(0, 1) ? new RegularQuery() : new TaggedQuery();
-		assertType(RegularQueryResult::class . '|' . TaggedResult::class, $this->handle($randomQuery));
+        $randomQuery = rand(0, 1) ? new RegularQuery() : new TaggedQuery();
+        assertType(RegularQueryResult::class . '|' . TaggedResult::class, $this->handle($randomQuery));
 
         // HandleTrait will throw exception in fact due to multiple handle methods/handlers per single query
         assertType('mixed', $this->handle(new MultiHandlersForTheSameMessageQuery()));
     }
 }
 
-class QueryBus {
+class QueryBus
+{
     use HandleTrait;
 
     public function dispatch(object $query)
@@ -66,26 +81,29 @@ class QueryBus {
         return $this->handle($query);
     }
 
-	public function dispatch2(object $query)
-	{
-		return $this->handle($query);
-	}
+    public function dispatch2(object $query)
+    {
+        return $this->handle($query);
+    }
 }
 
-interface QueryBusInterface {
-	public function dispatch(object $query);
+interface QueryBusInterface
+{
+    public function dispatch(object $query);
 }
 
-class QueryBusWithInterface implements QueryBusInterface {
-	use HandleTrait;
+class QueryBusWithInterface implements QueryBusInterface
+{
+    use HandleTrait;
 
-	public function dispatch(object $query)
-	{
-		return $this->handle($query);
-	}
+    public function dispatch(object $query)
+    {
+        return $this->handle($query);
+    }
 }
 
-class Controller {
+class Controller
+{
     public function action()
     {
         $queryBus = new QueryBus();
@@ -97,19 +115,19 @@ class Controller {
         assertType('float', $queryBus->dispatch(new FloatQuery()));
         assertType('string', $queryBus->dispatch(new StringQuery()));
 
-		$randomQuery = rand(0, 1) ? new IntQuery() : new StringQuery();
-		assertType('int|string', $queryBus->dispatch($randomQuery));
+        $randomQuery = rand(0, 1) ? new IntQuery() : new StringQuery();
+        assertType('int|string', $queryBus->dispatch($randomQuery));
 
         assertType(TaggedResult::class, $queryBus->dispatch(new TaggedQuery()));
 
-		assertType(RegularQueryResult::class, $queryBus->dispatch2(new RegularQuery()));
+        assertType(RegularQueryResult::class, $queryBus->dispatch2(new RegularQuery()));
 
-		$queryBusWithInterface = new QueryBusWithInterface();
+        $queryBusWithInterface = new QueryBusWithInterface();
 
-		assertType(RegularQueryResult::class, $queryBusWithInterface->dispatch(new RegularQuery()));
+        assertType(RegularQueryResult::class, $queryBusWithInterface->dispatch(new RegularQuery()));
 
-		$randomQueryBus = rand(0, 1) ? $queryBus : $queryBusWithInterface;
-		assertType(RegularQueryResult::class, $randomQueryBus->dispatch(new RegularQuery()));
+        $randomQueryBus = rand(0, 1) ? $queryBus : $queryBusWithInterface;
+        assertType(RegularQueryResult::class, $randomQueryBus->dispatch(new RegularQuery()));
 
         // HandleTrait will throw exception in fact due to multiple handle methods/handlers per single query
         assertType('mixed', $queryBus->dispatch(new MultiHandlesForInTheSameHandlerQuery()));

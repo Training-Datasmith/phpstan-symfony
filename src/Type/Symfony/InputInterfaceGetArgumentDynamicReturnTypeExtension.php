@@ -1,6 +1,11 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Type\Symfony;
+
+use function count;
+use function in_array;
 
 use InvalidArgumentException;
 use PhpParser\Node\Expr\MethodCall;
@@ -14,86 +19,83 @@ use PHPStan\Type\NullType;
 use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
-use function count;
-use function in_array;
 
 final class InputInterfaceGetArgumentDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
+    private ConsoleApplicationResolver $consoleApplicationResolver;
 
-	private ConsoleApplicationResolver $consoleApplicationResolver;
+    public function __construct(ConsoleApplicationResolver $consoleApplicationResolver)
+    {
+        $this->consoleApplicationResolver = $consoleApplicationResolver;
+    }
 
-	public function __construct(ConsoleApplicationResolver $consoleApplicationResolver)
-	{
-		$this->consoleApplicationResolver = $consoleApplicationResolver;
-	}
+    public function getClass(): string
+    {
+        return \Symfony\Component\Console\Input\InputInterface::class;
+    }
 
-	public function getClass(): string
-	{
-		return \Symfony\Component\Console\Input\InputInterface::class;
-	}
+    public function isMethodSupported(MethodReflection $methodReflection): bool
+    {
+        return $methodReflection->getName() === 'getArgument';
+    }
 
-	public function isMethodSupported(MethodReflection $methodReflection): bool
-	{
-		return $methodReflection->getName() === 'getArgument';
-	}
+    public function getTypeFromMethodCall(MethodReflection $methodReflection, MethodCall $methodCall, Scope $scope): ?Type
+    {
+        if (!isset($methodCall->getArgs()[0])) {
+            return null;
+        }
 
-	public function getTypeFromMethodCall(MethodReflection $methodReflection, MethodCall $methodCall, Scope $scope): ?Type
-	{
-		if (!isset($methodCall->getArgs()[0])) {
-			return null;
-		}
+        $classReflection = $scope->getClassReflection();
+        if ($classReflection === null) {
+            return null;
+        }
 
-		$classReflection = $scope->getClassReflection();
-		if ($classReflection === null) {
-			return null;
-		}
+        $argStrings = $scope->getType($methodCall->getArgs()[0]->value)->getConstantStrings();
+        if (count($argStrings) !== 1) {
+            return null;
+        }
+        $argName = $argStrings[0]->getValue();
 
-		$argStrings = $scope->getType($methodCall->getArgs()[0]->value)->getConstantStrings();
-		if (count($argStrings) !== 1) {
-			return null;
-		}
-		$argName = $argStrings[0]->getValue();
+        $argTypes = [];
+        $canBeNullInInteract = false;
+        foreach ($this->consoleApplicationResolver->findCommands($classReflection) as $command) {
+            try {
+                $command->mergeApplicationDefinition();
+                $argument = $command->getDefinition()->getArgument($argName);
+                if ($argument->isArray()) {
+                    $argType = new ArrayType(new IntegerType(), new StringType());
+                    if (!$argument->isRequired() && $argument->getDefault() !== []) {
+                        $argType = TypeCombinator::union($argType, $scope->getTypeFromValue($argument->getDefault()));
+                    }
+                } else {
+                    $argType = new StringType();
+                    if (!$argument->isRequired()) {
+                        $argType = TypeCombinator::union($argType, $scope->getTypeFromValue($argument->getDefault()));
+                    } else {
+                        $canBeNullInInteract = true;
+                    }
+                }
+                $argTypes[] = $argType;
+            } catch (InvalidArgumentException $e) {
+                // noop
+            }
+        }
 
-		$argTypes = [];
-		$canBeNullInInteract = false;
-		foreach ($this->consoleApplicationResolver->findCommands($classReflection) as $command) {
-			try {
-				$command->mergeApplicationDefinition();
-				$argument = $command->getDefinition()->getArgument($argName);
-				if ($argument->isArray()) {
-					$argType = new ArrayType(new IntegerType(), new StringType());
-					if (!$argument->isRequired() && $argument->getDefault() !== []) {
-						$argType = TypeCombinator::union($argType, $scope->getTypeFromValue($argument->getDefault()));
-					}
-				} else {
-					$argType = new StringType();
-					if (!$argument->isRequired()) {
-						$argType = TypeCombinator::union($argType, $scope->getTypeFromValue($argument->getDefault()));
-					} else {
-						$canBeNullInInteract = true;
-					}
-				}
-				$argTypes[] = $argType;
-			} catch (InvalidArgumentException $e) {
-				// noop
-			}
-		}
+        if (count($argTypes) === 0) {
+            return null;
+        }
 
-		if (count($argTypes) === 0) {
-			return null;
-		}
+        $method = $scope->getFunction();
+        if (
+            $canBeNullInInteract
+            && $method instanceof MethodReflection
+            && ($method->getName() === 'interact' || $method->getName() === 'initialize')
+            && in_array(\Symfony\Component\Console\Command\Command::class, $method->getDeclaringClass()->getParentClassesNames(), true)
+        ) {
+            $argTypes[] = new NullType();
+        }
 
-		$method = $scope->getFunction();
-		if (
-			$canBeNullInInteract
-			&& $method instanceof MethodReflection
-			&& ($method->getName() === 'interact' || $method->getName() === 'initialize')
-			&& in_array(\Symfony\Component\Console\Command\Command::class, $method->getDeclaringClass()->getParentClassesNames(), true)
-		) {
-			$argTypes[] = new NullType();
-		}
-
-		return TypeCombinator::union(...$argTypes);
-	}
+        return TypeCombinator::union(...$argTypes);
+    }
 
 }

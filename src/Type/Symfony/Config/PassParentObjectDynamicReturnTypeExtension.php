@@ -1,6 +1,11 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Type\Symfony\Config;
+
+use function count;
+use function in_array;
 
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
@@ -9,58 +14,54 @@ use PHPStan\Reflection\ParametersAcceptorSelector;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
 use PHPStan\Type\Symfony\Config\ValueObject\ParentObjectType;
 use PHPStan\Type\Type;
-use function count;
-use function in_array;
 
 final class PassParentObjectDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
+    /** @var class-string */
+    private string $className;
 
-	/** @var class-string */
-	private string $className;
+    /** @var string[] */
+    private array $methods;
 
-	/** @var string[] */
-	private array $methods;
+    /**
+     * @param class-string $className
+     * @param string[] $methods
+     */
+    public function __construct(string $className, array $methods)
+    {
+        $this->className = $className;
+        $this->methods = $methods;
+    }
 
-	/**
-	 * @param class-string $className
-	 * @param string[] $methods
-	 */
-	public function __construct(string $className, array $methods)
-	{
-		$this->className = $className;
-		$this->methods = $methods;
-	}
+    public function getClass(): string
+    {
+        return $this->className;
+    }
 
-	public function getClass(): string
-	{
-		return $this->className;
-	}
+    public function isMethodSupported(MethodReflection $methodReflection): bool
+    {
+        return in_array($methodReflection->getName(), $this->methods, true);
+    }
 
-	public function isMethodSupported(MethodReflection $methodReflection): bool
-	{
-		return in_array($methodReflection->getName(), $this->methods, true);
-	}
+    public function getTypeFromMethodCall(
+        MethodReflection $methodReflection,
+        MethodCall $methodCall,
+        Scope $scope
+    ): ?Type {
+        $calledOnType = $scope->getType($methodCall->var);
 
-	public function getTypeFromMethodCall(
-		MethodReflection $methodReflection,
-		MethodCall $methodCall,
-		Scope $scope
-	): ?Type
-	{
-		$calledOnType = $scope->getType($methodCall->var);
+        $defaultType = ParametersAcceptorSelector::selectFromArgs(
+            $scope,
+            $methodCall->getArgs(),
+            $methodReflection->getVariants(),
+        )->getReturnType();
 
-		$defaultType = ParametersAcceptorSelector::selectFromArgs(
-			$scope,
-			$methodCall->getArgs(),
-			$methodReflection->getVariants(),
-		)->getReturnType();
+        $classNames = $defaultType->getObjectClassNames();
+        if (count($classNames) !== 1) {
+            return null;
+        }
 
-		$classNames = $defaultType->getObjectClassNames();
-		if (count($classNames) !== 1) {
-			return null;
-		}
-
-		return new ParentObjectType($classNames[0], $calledOnType);
-	}
+        return new ParentObjectType($classNames[0], $calledOnType);
+    }
 
 }

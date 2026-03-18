@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Symfony;
 
@@ -10,14 +12,13 @@ use PHPStan\Analyser\Scope;
  */
 interface ServiceMap
 {
+    /**
+     * @return ServiceDefinition[]
+     */
+    public function getServices(): array;
 
-	/**
-	 * @return ServiceDefinition[]
-	 */
-	public function getServices(): array;
+    public function getService(string $id): ?ServiceDefinition;
 
-	public function getService(string $id): ?ServiceDefinition;
-
-	public static function getServiceIdFromNode(Expr $node, Scope $scope): ?string;
+    public static function getServiceIdFromNode(Expr $node, Scope $scope): ?string;
 
 }

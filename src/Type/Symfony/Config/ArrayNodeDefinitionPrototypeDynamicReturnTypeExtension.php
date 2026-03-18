@@ -1,6 +1,11 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Type\Symfony\Config;
+
+use function count;
+use function in_array;
 
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
@@ -9,38 +14,35 @@ use PHPStan\Reflection\ParametersAcceptorSelector;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
 use PHPStan\Type\Symfony\Config\ValueObject\ParentObjectType;
 use PHPStan\Type\Type;
-use function count;
-use function in_array;
 
 final class ArrayNodeDefinitionPrototypeDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
+    private const PROTOTYPE_METHODS = [
+        'arrayPrototype',
+        'scalarPrototype',
+        'booleanPrototype',
+        'integerPrototype',
+        'floatPrototype',
+        'enumPrototype',
+        'variablePrototype',
+    ];
 
-	private const PROTOTYPE_METHODS = [
-		'arrayPrototype',
-		'scalarPrototype',
-		'booleanPrototype',
-		'integerPrototype',
-		'floatPrototype',
-		'enumPrototype',
-		'variablePrototype',
-	];
+    private const MAPPING = [
+        'variable' => 'Symfony\Component\Config\Definition\Builder\VariableNodeDefinition',
+        'scalar' => 'Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition',
+        'boolean' => 'Symfony\Component\Config\Definition\Builder\BooleanNodeDefinition',
+        'integer' => 'Symfony\Component\Config\Definition\Builder\IntegerNodeDefinition',
+        'float' => 'Symfony\Component\Config\Definition\Builder\FloatNodeDefinition',
+        'array' => 'Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition',
+        'enum' => 'Symfony\Component\Config\Definition\Builder\EnumNodeDefinition',
+    ];
 
-	private const MAPPING = [
-		'variable' => 'Symfony\Component\Config\Definition\Builder\VariableNodeDefinition',
-		'scalar' => 'Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition',
-		'boolean' => 'Symfony\Component\Config\Definition\Builder\BooleanNodeDefinition',
-		'integer' => 'Symfony\Component\Config\Definition\Builder\IntegerNodeDefinition',
-		'float' => 'Symfony\Component\Config\Definition\Builder\FloatNodeDefinition',
-		'array' => 'Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition',
-		'enum' => 'Symfony\Component\Config\Definition\Builder\EnumNodeDefinition',
-	];
+    public function getClass(): string
+    {
+        return 'Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition';
+    }
 
-	public function getClass(): string
-	{
-		return 'Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition';
-	}
-
-	public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function isMethodSupported(MethodReflection $methodReflection): bool
     {
         if ($methodReflection->getName() === 'prototype') {
             return true;
@@ -48,42 +50,41 @@ final class ArrayNodeDefinitionPrototypeDynamicReturnTypeExtension implements Dy
         return in_array($methodReflection->getName(), self::PROTOTYPE_METHODS, true);
     }
 
-	public function getTypeFromMethodCall(
-		MethodReflection $methodReflection,
-		MethodCall $methodCall,
-		Scope $scope
-	): ?Type
-	{
-		$calledOnType = $scope->getType($methodCall->var);
+    public function getTypeFromMethodCall(
+        MethodReflection $methodReflection,
+        MethodCall $methodCall,
+        Scope $scope
+    ): ?Type {
+        $calledOnType = $scope->getType($methodCall->var);
 
-		$defaultType = ParametersAcceptorSelector::selectFromArgs(
-			$scope,
-			$methodCall->getArgs(),
-			$methodReflection->getVariants(),
-		)->getReturnType();
+        $defaultType = ParametersAcceptorSelector::selectFromArgs(
+            $scope,
+            $methodCall->getArgs(),
+            $methodReflection->getVariants(),
+        )->getReturnType();
 
-		if ($methodReflection->getName() === 'prototype') {
-			if (!isset($methodCall->getArgs()[0])) {
-				return $defaultType;
-			}
+        if ($methodReflection->getName() === 'prototype') {
+            if (!isset($methodCall->getArgs()[0])) {
+                return $defaultType;
+            }
 
-			$argStrings = $scope->getType($methodCall->getArgs()[0]->value)->getConstantStrings();
-			if (count($argStrings) === 1 && isset(self::MAPPING[$argStrings[0]->getValue()])) {
-				$type = $argStrings[0]->getValue();
+            $argStrings = $scope->getType($methodCall->getArgs()[0]->value)->getConstantStrings();
+            if (count($argStrings) === 1 && isset(self::MAPPING[$argStrings[0]->getValue()])) {
+                $type = $argStrings[0]->getValue();
 
-				return new ParentObjectType(self::MAPPING[$type], $calledOnType);
-			}
-		}
+                return new ParentObjectType(self::MAPPING[$type], $calledOnType);
+            }
+        }
 
-		$classNames = $defaultType->getObjectClassNames();
-		if (count($classNames) !== 1) {
-			return null;
-		}
+        $classNames = $defaultType->getObjectClassNames();
+        if (count($classNames) !== 1) {
+            return null;
+        }
 
-		return new ParentObjectType(
-			$classNames[0],
-			$calledOnType,
-		);
-	}
+        return new ParentObjectType(
+            $classNames[0],
+            $calledOnType,
+        );
+    }
 
 }

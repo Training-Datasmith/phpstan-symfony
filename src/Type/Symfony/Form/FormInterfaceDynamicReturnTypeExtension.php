@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Type\Symfony\Form;
 
@@ -17,48 +19,46 @@ use Symfony\Component\Form\FormInterface;
 
 final class FormInterfaceDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
+    public function getClass(): string
+    {
+        return FormInterface::class;
+    }
 
-	public function getClass(): string
-	{
-		return FormInterface::class;
-	}
+    public function isMethodSupported(MethodReflection $methodReflection): bool
+    {
+        return $methodReflection->getName() === 'getErrors';
+    }
 
-	public function isMethodSupported(MethodReflection $methodReflection): bool
-	{
-		return $methodReflection->getName() === 'getErrors';
-	}
+    public function getTypeFromMethodCall(
+        MethodReflection $methodReflection,
+        MethodCall $methodCall,
+        Scope $scope
+    ): Type {
+        if (!isset($methodCall->getArgs()[1])) {
+            return new GenericObjectType(FormErrorIterator::class, [new ObjectType(FormError::class)]);
+        }
 
-	public function getTypeFromMethodCall(
-		MethodReflection $methodReflection,
-		MethodCall $methodCall,
-		Scope $scope
-	): Type
-	{
-		if (!isset($methodCall->getArgs()[1])) {
-			return new GenericObjectType(FormErrorIterator::class, [new ObjectType(FormError::class)]);
-		}
+        $firstArgType = $scope->getType($methodCall->getArgs()[0]->value);
+        $secondArgType = $scope->getType($methodCall->getArgs()[1]->value);
 
-		$firstArgType = $scope->getType($methodCall->getArgs()[0]->value);
-		$secondArgType = $scope->getType($methodCall->getArgs()[1]->value);
+        $firstIsTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($firstArgType)->result;
+        $firstIsFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($firstArgType)->result;
+        $secondIsTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($secondArgType)->result;
+        $secondIsFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($secondArgType)->result;
 
-		$firstIsTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($firstArgType)->result;
-		$firstIsFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($firstArgType)->result;
-		$secondIsTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($secondArgType)->result;
-		$secondIsFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($secondArgType)->result;
+        $firstCompareType = $firstIsTrueType->compareTo($firstIsFalseType);
+        $secondCompareType = $secondIsTrueType->compareTo($secondIsFalseType);
 
-		$firstCompareType = $firstIsTrueType->compareTo($firstIsFalseType);
-		$secondCompareType = $secondIsTrueType->compareTo($secondIsFalseType);
+        if ($firstCompareType === $firstIsTrueType && $secondCompareType === $secondIsFalseType) {
+            return new GenericObjectType(FormErrorIterator::class, [
+                new UnionType([
+                    new ObjectType(FormError::class),
+                    new ObjectType(FormErrorIterator::class),
+                ]),
+            ]);
+        }
 
-		if ($firstCompareType === $firstIsTrueType && $secondCompareType === $secondIsFalseType) {
-			return new GenericObjectType(FormErrorIterator::class, [
-				new UnionType([
-					new ObjectType(FormError::class),
-					new ObjectType(FormErrorIterator::class),
-				]),
-			]);
-		}
-
-		return new GenericObjectType(FormErrorIterator::class, [new ObjectType(FormError::class)]);
-	}
+        return new GenericObjectType(FormErrorIterator::class, [new ObjectType(FormError::class)]);
+    }
 
 }

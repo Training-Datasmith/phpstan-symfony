@@ -1,38 +1,41 @@
-<?php // lint >= 7.4
+<?php
+
+declare(strict_types=1);
+// lint >= 7.4
 
 namespace RequiredAnnotationTest;
 
 class TestAnnotations
 {
-	/** @required */
-	public string $one;
+    /** @required */
+    public string $one;
 
-	private string $two;
+    private string $two;
 
-	public string $three;
+    public string $three;
 
-	private string $four;
+    private string $four;
 
-	/**
-	 * @required
-	 */
-	public function setTwo(int $two): void
-	{
-		$this->two = $two;
-	}
+    /**
+     * @required
+     */
+    public function setTwo(int $two): void
+    {
+        $this->two = $two;
+    }
 
-	public function getTwo(): int
-	{
-		return $this->two;
-	}
+    public function getTwo(): int
+    {
+        return $this->two;
+    }
 
-	public function setFour(int $four): void
-	{
-		$this->four = $four;
-	}
+    public function setFour(int $four): void
+    {
+        $this->four = $four;
+    }
 
-	public function getFour(): int
-	{
-		return $this->four;
-	}
+    public function getFour(): int
+    {
+        return $this->four;
+    }
 }

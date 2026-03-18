@@ -1,17 +1,21 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace BrowserKitAssertionTrait;
 
-use Symfony\Bundle\FrameworkBundle\Test\BrowserKitAssertionsTrait;
-use Symfony\Component\BrowserKit\AbstractBrowser;
 use function PHPStan\Testing\assertType;
 
-class Foo {
+use Symfony\Bundle\FrameworkBundle\Test\BrowserKitAssertionsTrait;
+use Symfony\Component\BrowserKit\AbstractBrowser;
+
+class Foo
+{
     use BrowserKitAssertionsTrait;
 
-	/**
-	 * @param mixed $mixed
-	 */
+    /**
+     * @param mixed $mixed
+     */
     public function test(AbstractBrowser $browser, ?AbstractBrowser $nullableBrowser, $mixed)
     {
         assertType('Symfony\Component\BrowserKit\AbstractBrowser', $this->getClient());

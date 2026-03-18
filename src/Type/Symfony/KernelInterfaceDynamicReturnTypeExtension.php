@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Type\Symfony;
 
@@ -14,36 +16,34 @@ use PHPStan\Type\Type;
 
 final class KernelInterfaceDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
+    public function getClass(): string
+    {
+        return 'Symfony\Component\HttpKernel\KernelInterface';
+    }
 
-	public function getClass(): string
-	{
-		return 'Symfony\Component\HttpKernel\KernelInterface';
-	}
+    public function isMethodSupported(MethodReflection $methodReflection): bool
+    {
+        return $methodReflection->getName() === 'locateResource';
+    }
 
-	public function isMethodSupported(MethodReflection $methodReflection): bool
-	{
-		return $methodReflection->getName() === 'locateResource';
-	}
+    public function getTypeFromMethodCall(
+        MethodReflection $methodReflection,
+        MethodCall $methodCall,
+        Scope $scope
+    ): ?Type {
+        $firstArgType = isset($methodCall->getArgs()[2]) ? $scope->getType($methodCall->getArgs()[2]->value) : new ConstantBooleanType(true);
+        $isTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($firstArgType)->result;
+        $isFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($firstArgType)->result;
+        $compareTypes = $isTrueType->compareTo($isFalseType);
 
-	public function getTypeFromMethodCall(
-		MethodReflection $methodReflection,
-		MethodCall $methodCall,
-		Scope $scope
-	): ?Type
-	{
-		$firstArgType = isset($methodCall->getArgs()[2]) ? $scope->getType($methodCall->getArgs()[2]->value) : new ConstantBooleanType(true);
-		$isTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($firstArgType)->result;
-		$isFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($firstArgType)->result;
-		$compareTypes = $isTrueType->compareTo($isFalseType);
+        if ($compareTypes === $isTrueType) {
+            return new StringType();
+        }
+        if ($compareTypes === $isFalseType) {
+            return new ArrayType(new IntegerType(), new StringType());
+        }
 
-		if ($compareTypes === $isTrueType) {
-			return new StringType();
-		}
-		if ($compareTypes === $isFalseType) {
-			return new ArrayType(new IntegerType(), new StringType());
-		}
-
-		return null;
-	}
+        return null;
+    }
 
 }

@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Symfony;
 
@@ -7,12 +9,11 @@ namespace PHPStan\Symfony;
  */
 interface ParameterDefinition
 {
+    public function getKey(): string;
 
-	public function getKey(): string;
-
-	/**
-	 * @return array<mixed>|bool|float|int|string
-	 */
-	public function getValue();
+    /**
+     * @return array<mixed>|bool|float|int|string
+     */
+    public function getValue();
 
 }

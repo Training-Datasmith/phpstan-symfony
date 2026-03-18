@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 use PHPStan\Type\Symfony\ExampleACommand;
 use PHPStan\Type\Symfony\ExampleBCommand;
@@ -15,9 +17,9 @@ $application->add(new ExampleBCommand());
 $application->add(new ExampleOptionCommand());
 
 if (class_exists(LazyCommand::class)) {
-	$application->add(new LazyCommand('lazy-example-option', [], '', false, static fn () => new ExampleOptionLazyCommand()));
+    $application->add(new LazyCommand('lazy-example-option', [], '', false, static fn () => new ExampleOptionLazyCommand()));
 } else {
-	$application->add(new ExampleOptionLazyCommand());
+    $application->add(new ExampleOptionLazyCommand());
 }
 
 return $application;

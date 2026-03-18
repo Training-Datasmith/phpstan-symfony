@@ -1,6 +1,10 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Rules\Symfony;
+
+use function count;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
@@ -17,7 +21,7 @@ use PHPStan\Type\ObjectType;
 use PHPStan\Type\StringType;
 use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
-use function count;
+
 use function sprintf;
 
 /**
@@ -25,64 +29,63 @@ use function sprintf;
  */
 final class InvalidOptionDefaultValueRule implements Rule
 {
+    public function getNodeType(): string
+    {
+        return MethodCall::class;
+    }
 
-	public function getNodeType(): string
-	{
-		return MethodCall::class;
-	}
+    public function processNode(Node $node, Scope $scope): array
+    {
+        if (!(new ObjectType(\Symfony\Component\Console\Command\Command::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
+            return [];
+        }
+        if (!$node->name instanceof Node\Identifier || $node->name->name !== 'addOption') {
+            return [];
+        }
+        if (!isset($node->getArgs()[4])) {
+            return [];
+        }
 
-	public function processNode(Node $node, Scope $scope): array
-	{
-		if (!(new ObjectType(\Symfony\Component\Console\Command\Command::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
-			return [];
-		}
-		if (!$node->name instanceof Node\Identifier || $node->name->name !== 'addOption') {
-			return [];
-		}
-		if (!isset($node->getArgs()[4])) {
-			return [];
-		}
+        $modeType = isset($node->getArgs()[2]) ? $scope->getType($node->getArgs()[2]->value) : new NullType();
+        if ($modeType->isNull()->yes()) {
+            $modeType = new ConstantIntegerType(1); // InputOption::VALUE_NONE
+        }
+        $modeTypes = $modeType->getConstantScalarTypes();
+        if (count($modeTypes) !== 1) {
+            return [];
+        }
+        if (!$modeTypes[0] instanceof ConstantIntegerType) {
+            return [];
+        }
+        $mode = $modeTypes[0]->getValue();
 
-		$modeType = isset($node->getArgs()[2]) ? $scope->getType($node->getArgs()[2]->value) : new NullType();
-		if ($modeType->isNull()->yes()) {
-			$modeType = new ConstantIntegerType(1); // InputOption::VALUE_NONE
-		}
-		$modeTypes = $modeType->getConstantScalarTypes();
-		if (count($modeTypes) !== 1) {
-			return [];
-		}
-		if (!$modeTypes[0] instanceof ConstantIntegerType) {
-			return [];
-		}
-		$mode = $modeTypes[0]->getValue();
+        $defaultType = $scope->getType($node->getArgs()[4]->value);
 
-		$defaultType = $scope->getType($node->getArgs()[4]->value);
+        // not an array
+        if (($mode & 8) !== 8) {
+            $checkType = new UnionType([new StringType(), new IntegerType(), new NullType(), new BooleanType()]);
+            if (!$checkType->isSuperTypeOf($defaultType)->yes()) {
+                return [
+                    RuleErrorBuilder::message(sprintf(
+                        'Parameter #5 $default of method Symfony\Component\Console\Command\Command::addOption() expects %s, %s given.',
+                        $checkType->describe(VerbosityLevel::typeOnly()),
+                        $defaultType->describe(VerbosityLevel::typeOnly()),
+                    ))->identifier('argument.type')->build(),
+                ];
+            }
+        }
 
-		// not an array
-		if (($mode & 8) !== 8) {
-			$checkType = new UnionType([new StringType(), new IntegerType(), new NullType(), new BooleanType()]);
-			if (!$checkType->isSuperTypeOf($defaultType)->yes()) {
-				return [
-					RuleErrorBuilder::message(sprintf(
-						'Parameter #5 $default of method Symfony\Component\Console\Command\Command::addOption() expects %s, %s given.',
-						$checkType->describe(VerbosityLevel::typeOnly()),
-						$defaultType->describe(VerbosityLevel::typeOnly()),
-					))->identifier('argument.type')->build(),
-				];
-			}
-		}
+        // is array
+        if (($mode & 8) === 8 && !(new UnionType([new ArrayType(new MixedType(), new StringType()), new NullType()]))->isSuperTypeOf($defaultType)->yes()) {
+            return [
+                RuleErrorBuilder::message(sprintf(
+                    'Parameter #5 $default of method Symfony\Component\Console\Command\Command::addOption() expects array<string>|null, %s given.',
+                    $defaultType->describe(VerbosityLevel::typeOnly()),
+                ))->identifier('argument.type')->build(),
+            ];
+        }
 
-		// is array
-		if (($mode & 8) === 8 && !(new UnionType([new ArrayType(new MixedType(), new StringType()), new NullType()]))->isSuperTypeOf($defaultType)->yes()) {
-			return [
-				RuleErrorBuilder::message(sprintf(
-					'Parameter #5 $default of method Symfony\Component\Console\Command\Command::addOption() expects array<string>|null, %s given.',
-					$defaultType->describe(VerbosityLevel::typeOnly()),
-				))->identifier('argument.type')->build(),
-			];
-		}
-
-		return [];
-	}
+        return [];
+    }
 
 }

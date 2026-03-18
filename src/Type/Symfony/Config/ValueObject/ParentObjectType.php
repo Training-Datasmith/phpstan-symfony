@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Type\Symfony\Config\ValueObject;
 
@@ -8,24 +10,23 @@ use PHPStan\Type\VerbosityLevel;
 
 class ParentObjectType extends ObjectType
 {
+    private Type $parent;
 
-	private Type $parent;
+    public function __construct(string $className, Type $parent)
+    {
+        parent::__construct($className);
 
-	public function __construct(string $className, Type $parent)
-	{
-		parent::__construct($className);
+        $this->parent = $parent;
+    }
 
-		$this->parent = $parent;
-	}
+    public function getParent(): Type
+    {
+        return $this->parent;
+    }
 
-	public function getParent(): Type
-	{
-		return $this->parent;
-	}
-
-	protected function describeAdditionalCacheKey(): string
-	{
-		return $this->parent->describe(VerbosityLevel::cache());
-	}
+    protected function describeAdditionalCacheKey(): string
+    {
+        return $this->parent->describe(VerbosityLevel::cache());
+    }
 
 }

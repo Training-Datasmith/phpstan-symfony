@@ -1,4 +1,7 @@
-<?php // lint >= 8.0
+<?php
+
+declare(strict_types=1);
+// lint >= 8.0
 
 namespace RequiredAttributesTest;
 
@@ -6,33 +9,33 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 class TestAttributes
 {
-	#[Required]
-	public string $one;
+    #[Required]
+    public string $one;
 
-	private string $two;
+    private string $two;
 
-	public string $three;
+    public string $three;
 
-	private string $four;
+    private string $four;
 
-	#[Required]
-	public function setTwo(int $two): void
-	{
-		$this->two = $two;
-	}
+    #[Required]
+    public function setTwo(int $two): void
+    {
+        $this->two = $two;
+    }
 
-	public function getTwo(): int
-	{
-		return $this->two;
-	}
+    public function getTwo(): int
+    {
+        return $this->two;
+    }
 
-	public function setFour(int $four): void
-	{
-		$this->four = $four;
-	}
+    public function setFour(int $four): void
+    {
+        $this->four = $four;
+    }
 
-	public function getFour(): int
-	{
-		return $this->four;
-	}
+    public function getFour(): int
+    {
+        return $this->four;
+    }
 }

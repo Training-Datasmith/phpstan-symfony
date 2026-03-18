@@ -1,15 +1,26 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace MessengerHandleTrait;
 
-use Symfony\Component\Messenger\Handler\MessageSubscriberInterface;
-use Symfony\Component\Messenger\HandleTrait;
 use function PHPStan\Testing\assertType;
 
-class BooleanQuery {}
-class StringQuery {}
-class IntQuery {}
-class FloatQuery {}
+use Symfony\Component\Messenger\Handler\MessageSubscriberInterface;
+use Symfony\Component\Messenger\HandleTrait;
+
+class BooleanQuery
+{
+}
+class StringQuery
+{
+}
+class IntQuery
+{
+}
+class FloatQuery
+{
+}
 class MultiQueryHandler implements MessageSubscriberInterface
 {
     public static function getHandledMessages(): iterable
@@ -41,7 +52,9 @@ class MultiQueryHandler implements MessageSubscriberInterface
     }
 }
 
-class MultiHandlesForInTheSameHandlerQuery {}
+class MultiHandlesForInTheSameHandlerQuery
+{
+}
 class MultiHandlesForInTheSameHandler implements MessageSubscriberInterface
 {
     public static function getHandledMessages(): iterable
@@ -56,7 +69,8 @@ class MultiHandlesForInTheSameHandler implements MessageSubscriberInterface
     }
 }
 
-class HandleTraitClassWithSubscriber {
+class HandleTraitClassWithSubscriber
+{
     use HandleTrait;
 
     public function __invoke()

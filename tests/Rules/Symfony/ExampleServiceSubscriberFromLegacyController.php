@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Rules\Symfony;
 
@@ -7,18 +9,17 @@ use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
 final class ExampleServiceSubscriberFromLegacyController extends Controller implements ServiceSubscriberInterface
 {
+    public function privateService(): void
+    {
+        $this->get('private');
+    }
 
-	public function privateService(): void
-	{
-		$this->get('private');
-	}
-
-	/**
-	 * @return string[]
-	 */
-	public static function getSubscribedServices(): array
-	{
-		return [];
-	}
+    /**
+     * @return string[]
+     */
+    public static function getSubscribedServices(): array
+    {
+        return [];
+    }
 
 }

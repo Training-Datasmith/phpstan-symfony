@@ -1,8 +1,11 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
+
+use function PHPStan\Testing\assertType;
 
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use function PHPStan\Testing\assertType;
 
 $headerBag = new ResponseHeaderBag();
 $headerBag->setCookie(Cookie::create('cookie_name'));

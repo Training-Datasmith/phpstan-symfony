@@ -1,106 +1,109 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Symfony;
 
-use SimpleXMLElement;
 use function count;
 use function file_get_contents;
 use function ksort;
 use function simplexml_load_string;
+
+use SimpleXMLElement;
+
 use function sprintf;
 use function strpos;
 use function substr;
 
 final class XmlServiceMapFactory implements ServiceMapFactory
 {
+    private ?string $containerXml = null;
 
-	private ?string $containerXml = null;
+    public function __construct(?string $containerXmlPath)
+    {
+        $this->containerXml = $containerXmlPath;
+    }
 
-	public function __construct(?string $containerXmlPath)
-	{
-		$this->containerXml = $containerXmlPath;
-	}
+    public function create(): ServiceMap
+    {
+        if ($this->containerXml === null) {
+            return new FakeServiceMap();
+        }
 
-	public function create(): ServiceMap
-	{
-		if ($this->containerXml === null) {
-			return new FakeServiceMap();
-		}
+        $fileContents = file_get_contents($this->containerXml);
+        if ($fileContents === false) {
+            throw new XmlContainerNotExistsException(sprintf('Container %s does not exist', $this->containerXml));
+        }
 
-		$fileContents = file_get_contents($this->containerXml);
-		if ($fileContents === false) {
-			throw new XmlContainerNotExistsException(sprintf('Container %s does not exist', $this->containerXml));
-		}
+        $xml = @simplexml_load_string($fileContents);
+        if ($xml === false) {
+            throw new XmlContainerNotExistsException(sprintf('Container %s cannot be parsed', $this->containerXml));
+        }
 
-		$xml = @simplexml_load_string($fileContents);
-		if ($xml === false) {
-			throw new XmlContainerNotExistsException(sprintf('Container %s cannot be parsed', $this->containerXml));
-		}
+        /** @var Service[] $services */
+        $services = [];
+        /** @var Service[] $aliases */
+        $aliases = [];
 
-		/** @var Service[] $services */
-		$services = [];
-		/** @var Service[] $aliases */
-		$aliases = [];
+        if (count($xml->services) > 0) {
+            foreach ($xml->services->service as $def) {
+                /** @var SimpleXMLElement $attrs */
+                $attrs = $def->attributes();
+                if (!isset($attrs->id)) {
+                    continue;
+                }
 
-		if (count($xml->services) > 0) {
-			foreach ($xml->services->service as $def) {
-				/** @var SimpleXMLElement $attrs */
-				$attrs = $def->attributes();
-				if (!isset($attrs->id)) {
-					continue;
-				}
+                $serviceTags = [];
+                foreach ($def->tag as $tag) {
+                    $tagAttrs = ((array) $tag->attributes())['@attributes'] ?? [];
+                    $tagName = $tagAttrs['name'];
+                    unset($tagAttrs['name']);
 
-				$serviceTags = [];
-				foreach ($def->tag as $tag) {
-					$tagAttrs = ((array) $tag->attributes())['@attributes'] ?? [];
-					$tagName = $tagAttrs['name'];
-					unset($tagAttrs['name']);
+                    $serviceTags[] = new ServiceTag($tagName, $tagAttrs);
+                }
 
-					$serviceTags[] = new ServiceTag($tagName, $tagAttrs);
-				}
+                $service = new Service(
+                    $this->cleanServiceId((string) $attrs->id),
+                    isset($attrs->class) ? (string) $attrs->class : null,
+                    isset($attrs->public) && (string) $attrs->public === 'true',
+                    isset($attrs->synthetic) && (string) $attrs->synthetic === 'true',
+                    isset($attrs->alias) ? $this->cleanServiceId((string) $attrs->alias) : null,
+                    $serviceTags,
+                );
 
-				$service = new Service(
-					$this->cleanServiceId((string) $attrs->id),
-					isset($attrs->class) ? (string) $attrs->class : null,
-					isset($attrs->public) && (string) $attrs->public === 'true',
-					isset($attrs->synthetic) && (string) $attrs->synthetic === 'true',
-					isset($attrs->alias) ? $this->cleanServiceId((string) $attrs->alias) : null,
-					$serviceTags,
-				);
-
-				if ($service->getAlias() !== null) {
-					$aliases[] = $service;
-				} else {
-					$services[$service->getId()] = $service;
-				}
-			}
-		}
-		foreach ($aliases as $service) {
-			$alias = $service->getAlias();
+                if ($service->getAlias() !== null) {
+                    $aliases[] = $service;
+                } else {
+                    $services[$service->getId()] = $service;
+                }
+            }
+        }
+        foreach ($aliases as $service) {
+            $alias = $service->getAlias();
             if ($alias === null) {
                 continue;
             }
             if (!isset($services[$alias])) {
                 continue;
             }
-			$id = $service->getId();
-			$services[$id] = new Service(
-				$id,
-				$services[$alias]->getClass(),
-				$service->isPublic(),
-				$service->isSynthetic(),
-				$alias,
-			);
-		}
+            $id = $service->getId();
+            $services[$id] = new Service(
+                $id,
+                $services[$alias]->getClass(),
+                $service->isPublic(),
+                $service->isSynthetic(),
+                $alias,
+            );
+        }
 
-		ksort($services);
+        ksort($services);
 
-		return new DefaultServiceMap($services);
-	}
+        return new DefaultServiceMap($services);
+    }
 
-	private function cleanServiceId(string $id): string
-	{
-		return strpos($id, '.') === 0 ? substr($id, 1) : $id;
-	}
+    private function cleanServiceId(string $id): string
+    {
+        return strpos($id, '.') === 0 ? substr($id, 1) : $id;
+    }
 
 }

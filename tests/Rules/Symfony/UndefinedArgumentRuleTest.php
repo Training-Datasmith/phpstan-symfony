@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Rules\Symfony;
 
@@ -12,32 +14,31 @@ use PHPStan\Testing\RuleTestCase;
  */
 final class UndefinedArgumentRuleTest extends RuleTestCase
 {
+    protected function getRule(): Rule
+    {
+        return new UndefinedArgumentRule(new ConsoleApplicationResolver(__DIR__ . '/console_application_loader.php'), self::getContainer()->getByType(Printer::class));
+    }
 
-	protected function getRule(): Rule
-	{
-		return new UndefinedArgumentRule(new ConsoleApplicationResolver(__DIR__ . '/console_application_loader.php'), self::getContainer()->getByType(Printer::class));
-	}
+    public function testGetArgument(): void
+    {
+        $this->analyse(
+            [
+                __DIR__ . '/ExampleCommand.php',
+            ],
+            [
+                [
+                    'Command "example-rule" does not define argument "undefined".',
+                    42,
+                ],
+            ],
+        );
+    }
 
-	public function testGetArgument(): void
-	{
-		$this->analyse(
-			[
-				__DIR__ . '/ExampleCommand.php',
-			],
-			[
-				[
-					'Command "example-rule" does not define argument "undefined".',
-					42,
-				],
-			],
-		);
-	}
-
-	public static function getAdditionalConfigFiles(): array
-	{
-		return [
-			__DIR__ . '/argument.neon',
-		];
-	}
+    public static function getAdditionalConfigFiles(): array
+    {
+        return [
+            __DIR__ . '/argument.neon',
+        ];
+    }
 
 }

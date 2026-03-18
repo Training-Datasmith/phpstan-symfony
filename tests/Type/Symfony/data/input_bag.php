@@ -1,4 +1,6 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 use function PHPStan\Testing\assertType;
 
@@ -7,12 +9,12 @@ $bag = new \Symfony\Component\HttpFoundation\InputBag(['foo' => 'bar', 'bar' => 
 assertType('bool|float|int|string|null', $bag->get('foo'));
 
 if ($bag->has('foo')) {
-	// Because `has` rely on `array_key_exists` we can still have set the NULL value.
-	assertType('bool|float|int|string|null', $bag->get('foo'));
-	assertType('bool|float|int|string|null', $bag->get('bar'));
+    // Because `has` rely on `array_key_exists` we can still have set the NULL value.
+    assertType('bool|float|int|string|null', $bag->get('foo'));
+    assertType('bool|float|int|string|null', $bag->get('bar'));
 } else {
-	assertType('null', $bag->get('foo'));
-	assertType('bool|float|int|string|null', $bag->get('bar'));
+    assertType('null', $bag->get('foo'));
+    assertType('bool|float|int|string|null', $bag->get('bar'));
 }
 
 assertType('bool|float|int|string|null', $bag->get('foo', null));

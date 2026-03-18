@@ -1,96 +1,99 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
+
+use function PHPStan\Testing\assertType;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use function PHPStan\Testing\assertType;
 
 $treeBuilder = new TreeBuilder('my_tree');
 $treeRootNode = $treeBuilder->getRootNode();
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $treeRootNode);
 
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $treeRootNode
-	->children()
-	->end());
+    ->children()
+    ->end());
 
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $treeRootNode
-	->children()
-	->scalarNode("protocol")
-	->end()
-	->end());
+    ->children()
+    ->scalarNode('protocol')
+    ->end()
+    ->end());
 
 assertType('Symfony\Component\Config\Definition\Builder\NodeBuilder', $treeRootNode
-	->children());
+    ->children());
 
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $treeRootNode
-	->children()
-	->arrayNode("protocols"));
+    ->children()
+    ->arrayNode('protocols'));
 
 assertType('Symfony\Component\Config\Definition\Builder\NodeBuilder', $treeRootNode
-	->children()
-	->arrayNode("protocols")
-	->children());
+    ->children()
+    ->arrayNode('protocols')
+    ->children());
 
 assertType('Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition', $treeRootNode
-	->children()
-	->arrayNode("protocols")
-	->children()
-	->scalarNode("protocol"));
+    ->children()
+    ->arrayNode('protocols')
+    ->children()
+    ->scalarNode('protocol'));
 
 assertType('Symfony\Component\Config\Definition\Builder\NodeBuilder', $treeRootNode
-	->children()
-	->arrayNode("protocols")
-	->children()
-	->scalarNode("protocol")
-	->end());
+    ->children()
+    ->arrayNode('protocols')
+    ->children()
+    ->scalarNode('protocol')
+    ->end());
 
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $treeRootNode
-	->children()
-	->arrayNode("protocols")
-	->children()
-	->scalarNode("protocol")
-	->end()
-	->end());
+    ->children()
+    ->arrayNode('protocols')
+    ->children()
+    ->scalarNode('protocol')
+    ->end()
+    ->end());
 
 assertType('Symfony\Component\Config\Definition\Builder\NodeBuilder', $treeRootNode
-	->children()
-	->arrayNode("protocols")
-	->children()
-	->scalarNode("protocol")
-	->end()
-	->end()
-	->end());
+    ->children()
+    ->arrayNode('protocols')
+    ->children()
+    ->scalarNode('protocol')
+    ->end()
+    ->end()
+    ->end());
 
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $treeRootNode
-	->children()
-	->arrayNode("protocols")
-	->children()
-	->scalarNode("protocol")
-	->end()
-	->end()
-	->end()
-	->end());
+    ->children()
+    ->arrayNode('protocols')
+    ->children()
+    ->scalarNode('protocol')
+    ->end()
+    ->end()
+    ->end()
+    ->end());
 
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $treeRootNode
-	->children()
-	->arrayNode("protocols")
-	->children()
-	->booleanNode("auto_connect")
-	->defaultTrue()
-	->end()
-	->scalarNode("default_connection")
-	->defaultValue("default")
-	->end()
-	->integerNode("positive_value")
-	->min(0)
-	->end()
-	->floatNode("big_value")
-	->max(5E45)
-	->end()
-	->enumNode("delivery")
-	->values(["standard", "expedited", "priority"])
-	->end()
-	->end()
-	->end()
-	->end());
+    ->children()
+    ->arrayNode('protocols')
+    ->children()
+    ->booleanNode('auto_connect')
+    ->defaultTrue()
+    ->end()
+    ->scalarNode('default_connection')
+    ->defaultValue('default')
+    ->end()
+    ->integerNode('positive_value')
+    ->min(0)
+    ->end()
+    ->floatNode('big_value')
+    ->max(5E45)
+    ->end()
+    ->enumNode('delivery')
+    ->values(['standard', 'expedited', 'priority'])
+    ->end()
+    ->end()
+    ->end()
+    ->end());
 
 $arrayTreeBuilder = new TreeBuilder('my_tree', 'array');
 $arrayRootNode = $arrayTreeBuilder->getRootNode();
@@ -98,48 +101,48 @@ $arrayRootNode = $arrayTreeBuilder->getRootNode();
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $arrayRootNode);
 assertType('Symfony\Component\Config\Definition\Builder\TreeBuilder', $arrayRootNode->end());
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $arrayRootNode
-	->children()
-	->arrayNode("methods")
-	->prototype("scalar")
-	->defaultNull()
-	->end()
-	->end()
-	->end());
+    ->children()
+    ->arrayNode('methods')
+    ->prototype('scalar')
+    ->defaultNull()
+    ->end()
+    ->end()
+    ->end());
 
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $arrayRootNode
-	->children()
-	->arrayNode("methods")
-	->scalarPrototype()
-	->defaultNull()
-	->end()
-	->end()
-	->end());
+    ->children()
+    ->arrayNode('methods')
+    ->scalarPrototype()
+    ->defaultNull()
+    ->end()
+    ->end()
+    ->end());
 
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $arrayRootNode
-	->children()
-	->arrayNode("methods")
-	->prototype("scalar")
-	->validate()
-	->ifNotInArray(["one", "two"])
-	->thenInvalid("%s is not a valid method.")
-	->end()
-	->end()
-	->end()
-	->end());
+    ->children()
+    ->arrayNode('methods')
+    ->prototype('scalar')
+    ->validate()
+    ->ifNotInArray(['one', 'two'])
+    ->thenInvalid('%s is not a valid method.')
+    ->end()
+    ->end()
+    ->end()
+    ->end());
 
 assertType('Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition', $arrayRootNode
-	->children()
-	->arrayNode("methods")
-	->prototype("array")
-	->beforeNormalization()
-	->ifString()
-	->then(static function ($v) {
-		return [$v];
-	})
-	->end()
-	->end()
-	->end()
-	->end());
+    ->children()
+    ->arrayNode('methods')
+    ->prototype('array')
+    ->beforeNormalization()
+    ->ifString()
+    ->then(static function ($v) {
+        return [$v];
+    })
+    ->end()
+    ->end()
+    ->end()
+    ->end());
 
 $variableTreeBuilder = new TreeBuilder('my_tree', 'variable');
 $variableRootNode = $variableTreeBuilder->getRootNode();
@@ -151,8 +154,8 @@ $scalarTreeBuilder = new TreeBuilder('my_tree', 'scalar');
 $scalarRootNode = $scalarTreeBuilder->getRootNode();
 
 assertType('Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition', $scalarRootNode);
-assertType('Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition', $scalarRootNode->defaultValue("default"));
-assertType('Symfony\Component\Config\Definition\Builder\TreeBuilder', $scalarRootNode->defaultValue("default")->end());
+assertType('Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition', $scalarRootNode->defaultValue('default'));
+assertType('Symfony\Component\Config\Definition\Builder\TreeBuilder', $scalarRootNode->defaultValue('default')->end());
 
 $booleanTreeBuilder = new TreeBuilder('my_tree', 'boolean');
 $booleanRootNode = $booleanTreeBuilder->getRootNode();
@@ -179,5 +182,5 @@ $enumTreeBuilder = new TreeBuilder('my_tree', 'enum');
 $enumRootNode = $enumTreeBuilder->getRootNode();
 
 assertType('Symfony\Component\Config\Definition\Builder\EnumNodeDefinition', $enumRootNode);
-assertType('Symfony\Component\Config\Definition\Builder\EnumNodeDefinition', $enumRootNode->values(["standard", "expedited", "priority"]));
-assertType('Symfony\Component\Config\Definition\Builder\TreeBuilder', $enumRootNode->values(["standard", "expedited", "priority"])->end());
+assertType('Symfony\Component\Config\Definition\Builder\EnumNodeDefinition', $enumRootNode->values(['standard', 'expedited', 'priority']));
+assertType('Symfony\Component\Config\Definition\Builder\TreeBuilder', $enumRootNode->values(['standard', 'expedited', 'priority'])->end());

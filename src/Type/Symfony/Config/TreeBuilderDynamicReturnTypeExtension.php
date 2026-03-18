@@ -1,6 +1,10 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
 
 namespace PHPStan\Type\Symfony\Config;
+
+use function count;
 
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Name;
@@ -10,49 +14,47 @@ use PHPStan\ShouldNotHappenException;
 use PHPStan\Type\DynamicStaticMethodReturnTypeExtension;
 use PHPStan\Type\Symfony\Config\ValueObject\TreeBuilderType;
 use PHPStan\Type\Type;
-use function count;
 
 final class TreeBuilderDynamicReturnTypeExtension implements DynamicStaticMethodReturnTypeExtension
 {
+    private const MAPPING = [
+        'variable' => 'Symfony\Component\Config\Definition\Builder\VariableNodeDefinition',
+        'scalar' => 'Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition',
+        'boolean' => 'Symfony\Component\Config\Definition\Builder\BooleanNodeDefinition',
+        'integer' => 'Symfony\Component\Config\Definition\Builder\IntegerNodeDefinition',
+        'float' => 'Symfony\Component\Config\Definition\Builder\FloatNodeDefinition',
+        'array' => 'Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition',
+        'enum' => 'Symfony\Component\Config\Definition\Builder\EnumNodeDefinition',
+    ];
 
-	private const MAPPING = [
-		'variable' => 'Symfony\Component\Config\Definition\Builder\VariableNodeDefinition',
-		'scalar' => 'Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition',
-		'boolean' => 'Symfony\Component\Config\Definition\Builder\BooleanNodeDefinition',
-		'integer' => 'Symfony\Component\Config\Definition\Builder\IntegerNodeDefinition',
-		'float' => 'Symfony\Component\Config\Definition\Builder\FloatNodeDefinition',
-		'array' => 'Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition',
-		'enum' => 'Symfony\Component\Config\Definition\Builder\EnumNodeDefinition',
-	];
+    public function getClass(): string
+    {
+        return 'Symfony\Component\Config\Definition\Builder\TreeBuilder';
+    }
 
-	public function getClass(): string
-	{
-		return 'Symfony\Component\Config\Definition\Builder\TreeBuilder';
-	}
+    public function isStaticMethodSupported(MethodReflection $methodReflection): bool
+    {
+        return $methodReflection->getName() === '__construct';
+    }
 
-	public function isStaticMethodSupported(MethodReflection $methodReflection): bool
-	{
-		return $methodReflection->getName() === '__construct';
-	}
+    public function getTypeFromStaticMethodCall(MethodReflection $methodReflection, StaticCall $methodCall, Scope $scope): Type
+    {
+        if (!$methodCall->class instanceof Name) {
+            throw new ShouldNotHappenException();
+        }
 
-	public function getTypeFromStaticMethodCall(MethodReflection $methodReflection, StaticCall $methodCall, Scope $scope): Type
-	{
-		if (!$methodCall->class instanceof Name) {
-			throw new ShouldNotHappenException();
-		}
+        $className = $scope->resolveName($methodCall->class);
 
-		$className = $scope->resolveName($methodCall->class);
+        $type = 'array';
 
-		$type = 'array';
+        if (isset($methodCall->getArgs()[1])) {
+            $argStrings = $scope->getType($methodCall->getArgs()[1]->value)->getConstantStrings();
+            if (count($argStrings) === 1 && isset(self::MAPPING[$argStrings[0]->getValue()])) {
+                $type = $argStrings[0]->getValue();
+            }
+        }
 
-		if (isset($methodCall->getArgs()[1])) {
-			$argStrings = $scope->getType($methodCall->getArgs()[1]->value)->getConstantStrings();
-			if (count($argStrings) === 1 && isset(self::MAPPING[$argStrings[0]->getValue()])) {
-				$type = $argStrings[0]->getValue();
-			}
-		}
-
-		return new TreeBuilderType($className, self::MAPPING[$type]);
-	}
+        return new TreeBuilderType($className, self::MAPPING[$type]);
+    }
 
 }
