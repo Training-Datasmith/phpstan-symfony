@@ -12,7 +12,7 @@ use function sprintf;
 final class Helper
 {
 
-	public static function createMarkerNode(Expr $expr, Type $type, PrettyPrinterAbstract $printer): Expr
+	public static function createMarkerNode(Expr $expr, Type $type, PrettyPrinterAbstract $printer): \PhpParser\Node\Expr\Variable
 	{
 		return new Expr\Variable(md5(sprintf(
 			'%s::%s',

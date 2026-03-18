@@ -43,10 +43,10 @@ final class UndefinedOptionRule implements Rule
 			return [];
 		}
 
-		if (!(new ObjectType('Symfony\Component\Console\Command\Command'))->isSuperTypeOf(new ObjectType($classReflection->getName()))->yes()) {
+		if (!(new ObjectType(\Symfony\Component\Console\Command\Command::class))->isSuperTypeOf(new ObjectType($classReflection->getName()))->yes()) {
 			return [];
 		}
-		if (!(new ObjectType('Symfony\Component\Console\Input\InputInterface'))->isSuperTypeOf($scope->getType($node->var))->yes()) {
+		if (!(new ObjectType(\Symfony\Component\Console\Input\InputInterface::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
 			return [];
 		}
 		if (!$node->name instanceof Node\Identifier || $node->name->name !== 'getOption') {

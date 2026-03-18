@@ -38,7 +38,7 @@ final class DefaultParameterMap implements ParameterMap
 	{
 		$strings = $scope->getType($node)->getConstantStrings();
 
-		return array_map(static fn (Type $type) => $type->getValue(), $strings);
+		return array_map(static fn (Type $type): string => $type->getValue(), $strings);
 	}
 
 }

@@ -41,9 +41,12 @@ final class ArrayNodeDefinitionPrototypeDynamicReturnTypeExtension implements Dy
 	}
 
 	public function isMethodSupported(MethodReflection $methodReflection): bool
-	{
-		return $methodReflection->getName() === 'prototype' || in_array($methodReflection->getName(), self::PROTOTYPE_METHODS, true);
-	}
+    {
+        if ($methodReflection->getName() === 'prototype') {
+            return true;
+        }
+        return in_array($methodReflection->getName(), self::PROTOTYPE_METHODS, true);
+    }
 
 	public function getTypeFromMethodCall(
 		MethodReflection $methodReflection,

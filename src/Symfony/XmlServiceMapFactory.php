@@ -77,9 +77,12 @@ final class XmlServiceMapFactory implements ServiceMapFactory
 		}
 		foreach ($aliases as $service) {
 			$alias = $service->getAlias();
-			if ($alias === null || !isset($services[$alias])) {
-				continue;
-			}
+            if ($alias === null) {
+                continue;
+            }
+            if (!isset($services[$alias])) {
+                continue;
+            }
 			$id = $service->getId();
 			$services[$id] = new Service(
 				$id,

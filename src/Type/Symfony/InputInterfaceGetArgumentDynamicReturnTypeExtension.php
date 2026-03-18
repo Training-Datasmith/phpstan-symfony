@@ -29,7 +29,7 @@ final class InputInterfaceGetArgumentDynamicReturnTypeExtension implements Dynam
 
 	public function getClass(): string
 	{
-		return 'Symfony\Component\Console\Input\InputInterface';
+		return \Symfony\Component\Console\Input\InputInterface::class;
 	}
 
 	public function isMethodSupported(MethodReflection $methodReflection): bool
@@ -88,7 +88,7 @@ final class InputInterfaceGetArgumentDynamicReturnTypeExtension implements Dynam
 			$canBeNullInInteract
 			&& $method instanceof MethodReflection
 			&& ($method->getName() === 'interact' || $method->getName() === 'initialize')
-			&& in_array('Symfony\Component\Console\Command\Command', $method->getDeclaringClass()->getParentClassesNames(), true)
+			&& in_array(\Symfony\Component\Console\Command\Command::class, $method->getDeclaringClass()->getParentClassesNames(), true)
 		) {
 			$argTypes[] = new NullType();
 		}

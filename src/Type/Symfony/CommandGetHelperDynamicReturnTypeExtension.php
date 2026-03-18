@@ -26,7 +26,7 @@ final class CommandGetHelperDynamicReturnTypeExtension implements DynamicMethodR
 
 	public function getClass(): string
 	{
-		return 'Symfony\Component\Console\Command\Command';
+		return \Symfony\Component\Console\Command\Command::class;
 	}
 
 	public function isMethodSupported(MethodReflection $methodReflection): bool

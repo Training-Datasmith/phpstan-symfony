@@ -27,7 +27,7 @@ final class InputInterfaceGetOptionDynamicReturnTypeExtension implements Dynamic
 
 	public function getClass(): string
 	{
-		return 'Symfony\Component\Console\Input\InputInterface';
+		return \Symfony\Component\Console\Input\InputInterface::class;
 	}
 
 	public function isMethodSupported(MethodReflection $methodReflection): bool

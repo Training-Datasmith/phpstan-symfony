@@ -142,10 +142,11 @@ final class MessageMapFactory
 	private static function containOptions($index, $value): ?bool
 	{
 		if (is_string($index) && class_exists($index) && is_array($value)) {
-			return true;
-		} elseif (is_int($index) && is_string($value) && class_exists($value)) {
-			return false;
-		}
+            return true;
+        }
+        if (is_int($index) && is_string($value) && class_exists($value)) {
+            return false;
+        }
 
 		return null;
 	}

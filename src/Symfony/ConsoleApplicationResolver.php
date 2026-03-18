@@ -60,14 +60,14 @@ final class ConsoleApplicationResolver
 		}
 
 		$classType = new ObjectType($classReflection->getName());
-		if (!(new ObjectType('Symfony\Component\Console\Command\Command'))->isSuperTypeOf($classType)->yes()) {
+		if (!(new ObjectType(\Symfony\Component\Console\Command\Command::class))->isSuperTypeOf($classType)->yes()) {
 			return [];
 		}
 
 		$commands = [];
 		foreach ($consoleApplication->all() as $name => $command) {
 			$commandClass = new ObjectType(get_class($command));
-			$isLazyCommand = (new ObjectType('Symfony\Component\Console\Command\LazyCommand'))->isSuperTypeOf($commandClass)->yes();
+			$isLazyCommand = (new ObjectType(\Symfony\Component\Console\Command\LazyCommand::class))->isSuperTypeOf($commandClass)->yes();
 
 			if ($isLazyCommand && method_exists($command, 'getCommand')) {
 				/** @var Command $wrappedCommand */

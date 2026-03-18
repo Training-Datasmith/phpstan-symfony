@@ -38,7 +38,7 @@ final class SymfonyContainerResultCacheMetaExtension implements ResultCacheMetaE
 
 		foreach ($this->serviceMap->getServices() as $service) {
 			$serviceTags = array_map(
-				static fn (ServiceTag $tag) => [
+				static fn (ServiceTag $tag): array => [
 					'name' => $tag->getName(),
 					'attributes' => $tag->getAttributes(),
 				],

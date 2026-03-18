@@ -52,7 +52,7 @@ class RequiredAutowiringExtension implements ReadWritePropertiesExtension, Addit
 		}
 
 		// Check for the attribute version
-		if ($property instanceof PhpPropertyReflection && count($property->getNativeReflection()->getAttributes('Symfony\Contracts\Service\Attribute\Required')) > 0) {
+		if ($property instanceof PhpPropertyReflection && count($property->getNativeReflection()->getAttributes(\Symfony\Contracts\Service\Attribute\Required::class)) > 0) {
 			return true;
 		}
 
@@ -86,7 +86,7 @@ class RequiredAutowiringExtension implements ReadWritePropertiesExtension, Addit
 				$additionalConstructors[] = $method->getName();
 			}
 
-			if (count($method->getAttributesByName('Symfony\Contracts\Service\Attribute\Required')) === 0) {
+			if (count($method->getAttributesByName(\Symfony\Contracts\Service\Attribute\Required::class)) === 0) {
 				continue;
 			}
 

@@ -31,7 +31,7 @@ final class InvalidArgumentDefaultValueRule implements Rule
 
 	public function processNode(Node $node, Scope $scope): array
 	{
-		if (!(new ObjectType('Symfony\Component\Console\Command\Command'))->isSuperTypeOf($scope->getType($node->var))->yes()) {
+		if (!(new ObjectType(\Symfony\Component\Console\Command\Command::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
 			return [];
 		}
 		if (!$node->name instanceof Node\Identifier || $node->name->name !== 'addArgument') {
