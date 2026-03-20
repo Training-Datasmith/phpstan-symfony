@@ -1,8 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
 use function class_exists;
 use function count;
@@ -10,129 +9,97 @@ use function interface_exists;
 use function is_array;
 use function is_int;
 use function is_string;
-
-use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\ReflectionProvider;
-use Symfony\Component\Messenger\Handler\MessageSubscriberInterface;
-
-final class MessageMapFactory
+use Php_Stan\Reflection\Class_Reflection;
+use Php_Stan\Reflection\Reflection_Provider;
+use Symfony\Component\Messenger\Handler\Message_Subscriber_Interface;
+final class Message_Map_Factory
 {
     private const MESSENGER_HANDLER_TAG = 'messenger.message_handler';
     private const DEFAULT_HANDLER_METHOD = '__invoke';
-
-    private ReflectionProvider $reflectionProvider;
-
-    private ServiceMap $serviceMap;
-
-    public function __construct(ServiceMap $symfonyServiceMap, ReflectionProvider $reflectionProvider)
+    private Reflection_Provider $reflection_provider;
+    private Service_Map $service_map;
+    public function __construct(Service_Map $symfony_service_map, Reflection_Provider $reflection_provider)
     {
-        $this->serviceMap = $symfonyServiceMap;
-        $this->reflectionProvider = $reflectionProvider;
+        $this->service_map = $symfony_service_map;
+        $this->reflection_provider = $reflection_provider;
     }
-
-    public function create(): MessageMap
+    public function create(): Message_Map
     {
-        $returnTypesMap = [];
-
-        foreach ($this->serviceMap->getServices() as $service) {
-            $serviceClass = $service->getClass();
-
-            if ($serviceClass === null) {
+        $return_types_map = [];
+        foreach ($this->service_map->get_services() as $service) {
+            $service_class = $service->get_class();
+            if ($service_class === null) {
                 continue;
             }
-
-            foreach ($service->getTags() as $tag) {
-                if ($tag->getName() !== self::MESSENGER_HANDLER_TAG) {
+            foreach ($service->get_tags() as $tag) {
+                if ($tag->get_name() !== self::MESSENGER_HANDLER_TAG) {
                     continue;
                 }
-
-                if (!$this->reflectionProvider->hasClass($serviceClass)) {
+                if (!$this->reflection_provider->has_class($service_class)) {
                     continue;
                 }
-
-                $reflectionClass = $this->reflectionProvider->getClass($serviceClass);
-
+                $reflection_class = $this->reflection_provider->get_class($service_class);
                 /** @var array{handles?: class-string, method?: string} $tagAttributes */
-                $tagAttributes = $tag->getAttributes();
-
-                if (isset($tagAttributes['handles'])) {
-                    $handles = [$tagAttributes['handles'] => ['method' => $tagAttributes['method'] ?? self::DEFAULT_HANDLER_METHOD]];
+                $tag_attributes = $tag->get_attributes();
+                if (isset($tag_attributes['handles'])) {
+                    $handles = [$tag_attributes['handles'] => ['method' => $tag_attributes['method'] ?? self::DEFAULT_HANDLER_METHOD]];
                 } else {
-                    $handles = $this->guessHandledMessages($reflectionClass);
+                    $handles = $this->guess_handled_messages($reflection_class);
                 }
-
-                foreach ($handles as $messageClassName => $options) {
-                    $methodName = $options['method'] ?? self::DEFAULT_HANDLER_METHOD;
-
-                    if (!$reflectionClass->hasNativeMethod($methodName)) {
+                foreach ($handles as $message_class_name => $options) {
+                    $method_name = $options['method'] ?? self::DEFAULT_HANDLER_METHOD;
+                    if (!$reflection_class->has_native_method($method_name)) {
                         continue;
                     }
-
-                    $methodReflection = $reflectionClass->getNativeMethod($methodName);
-
-                    foreach ($methodReflection->getVariants() as $variant) {
-                        $returnTypesMap[$messageClassName][] = $variant->getReturnType();
+                    $method_reflection = $reflection_class->get_native_method($method_name);
+                    foreach ($method_reflection->get_variants() as $variant) {
+                        $return_types_map[$message_class_name][] = $variant->get_return_type();
                     }
                 }
             }
         }
-
-        $messageMap = [];
-        foreach ($returnTypesMap as $messageClassName => $returnTypes) {
-            if (count($returnTypes) !== 1) {
+        $message_map = [];
+        foreach ($return_types_map as $message_class_name => $return_types) {
+            if (count($return_types) !== 1) {
                 continue;
             }
-
-            $messageMap[$messageClassName] = $returnTypes[0];
+            $message_map[$message_class_name] = $return_types[0];
         }
-
-        return new MessageMap($messageMap);
+        return new Message_Map($message_map);
     }
-
     /** @return iterable<string, array<string, string>> */
-    private function guessHandledMessages(ClassReflection $reflectionClass): iterable
+    private function guess_handled_messages(Class_Reflection $reflection_class): iterable
     {
-        if (interface_exists(MessageSubscriberInterface::class) && $reflectionClass->implementsInterface(MessageSubscriberInterface::class)) {
-            $className = $reflectionClass->getName();
-
-            foreach ($className::getHandledMessages() as $index => $value) {
-                $containOptions = self::containOptions($index, $value);
-                if ($containOptions === true) {
+        if (interface_exists(Message_Subscriber_Interface::class) && $reflection_class->implements_interface(Message_Subscriber_Interface::class)) {
+            $class_name = $reflection_class->get_name();
+            foreach ($class_name::get_handled_messages() as $index => $value) {
+                $contain_options = self::contain_options($index, $value);
+                if ($contain_options === true) {
                     yield $index => $value;
-                } elseif ($containOptions === false) {
+                } elseif ($contain_options === false) {
                     yield $value => ['method' => self::DEFAULT_HANDLER_METHOD];
                 }
             }
-
             return;
         }
-
-        if (!$reflectionClass->hasNativeMethod(self::DEFAULT_HANDLER_METHOD)) {
+        if (!$reflection_class->has_native_method(self::DEFAULT_HANDLER_METHOD)) {
             return;
         }
-
-        $methodReflection = $reflectionClass->getNativeMethod(self::DEFAULT_HANDLER_METHOD);
-
-        $variants = $methodReflection->getVariants();
+        $method_reflection = $reflection_class->get_native_method(self::DEFAULT_HANDLER_METHOD);
+        $variants = $method_reflection->get_variants();
         if (count($variants) !== 1) {
             return;
         }
-
-        $parameters = $variants[0]->getParameters();
-
+        $parameters = $variants[0]->get_parameters();
         if (count($parameters) !== 1) {
             return;
         }
-
-        $classNames = $parameters[0]->getType()->getObjectClassNames();
-
-        if (count($classNames) !== 1) {
+        $class_names = $parameters[0]->get_type()->get_object_class_names();
+        if (count($class_names) !== 1) {
             return;
         }
-
-        yield $classNames[0] => ['method' => self::DEFAULT_HANDLER_METHOD];
+        yield $class_names[0] => ['method' => self::DEFAULT_HANDLER_METHOD];
     }
-
     /**
      * @param mixed $index
      * @param mixed $value
@@ -141,7 +108,7 @@ final class MessageMapFactory
      * @phpstan-assert-if-false =int $index
      * @phpstan-assert-if-false =class-string $value
      */
-    private static function containOptions($index, $value): ?bool
+    private static function contain_options($index, $value): ?bool
     {
         if (is_string($index) && class_exists($index) && is_array($value)) {
             return true;
@@ -149,8 +116,6 @@ final class MessageMapFactory
         if (is_int($index) && is_string($value) && class_exists($value)) {
             return false;
         }
-
         return null;
     }
-
 }

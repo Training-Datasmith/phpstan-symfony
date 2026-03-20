@@ -1,30 +1,25 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-use PhpParser\Node\Expr;
-use PHPStan\Analyser\Scope;
-
-final class FakeParameterMap implements ParameterMap
+use Php_Parser\Node\Expr;
+use Php_Stan\Analyser\Scope;
+final class Fake_Parameter_Map implements Parameter_Map
 {
     /**
      * @return ParameterDefinition[]
      */
-    public function getParameters(): array
+    public function get_parameters(): array
     {
         return [];
     }
-
-    public function getParameter(string $key): ?ParameterDefinition
+    public function get_parameter(string $key): ?Parameter_Definition
     {
         return null;
     }
-
-    public static function getParameterKeysFromNode(Expr $node, Scope $scope): array
+    public static function get_parameter_keys_from_node(Expr $node, Scope $scope): array
     {
         return [];
     }
-
 }

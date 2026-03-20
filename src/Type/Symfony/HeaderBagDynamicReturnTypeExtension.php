@@ -1,53 +1,42 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
-namespace PHPStan\Type\Symfony;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Type\ArrayType;
-use PHPStan\Type\Constant\ConstantBooleanType;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\IntegerType;
-use PHPStan\Type\NullType;
-use PHPStan\Type\StringType;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-
-final class HeaderBagDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Type\Array_Type;
+use Php_Stan\Type\Constant\Constant_Boolean_Type;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Integer_Type;
+use Php_Stan\Type\Null_Type;
+use Php_Stan\Type\String_Type;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
+final class Header_Bag_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    public function getClass(): string
+    public function get_class(): string
     {
         return 'Symfony\Component\HttpFoundation\HeaderBag';
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === 'get';
+        return $method_reflection->get_name() === 'get';
     }
-
-    public function getTypeFromMethodCall(
-        MethodReflection $methodReflection,
-        MethodCall $methodCall,
-        Scope $scope
-    ): ?Type {
-        $firstArgType = isset($methodCall->getArgs()[2]) ? $scope->getType($methodCall->getArgs()[2]->value) : new ConstantBooleanType(true);
-        $isTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($firstArgType)->result;
-        $isFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($firstArgType)->result;
-        $compareTypes = $isTrueType->compareTo($isFalseType);
-
-        if ($compareTypes === $isTrueType) {
-            $defaultArgType = isset($methodCall->getArgs()[1]) ? $scope->getType($methodCall->getArgs()[1]->value) : new NullType();
-
-            return TypeCombinator::union($defaultArgType, new StringType());
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
+    {
+        $first_arg_type = isset($method_call->get_args()[2]) ? $scope->get_type($method_call->get_args()[2]->value) : new Constant_Boolean_Type(true);
+        $is_true_type = (new Constant_Boolean_Type(true))->is_super_type_of($first_arg_type)->result;
+        $is_false_type = (new Constant_Boolean_Type(false))->is_super_type_of($first_arg_type)->result;
+        $compare_types = $is_true_type->compare_to($is_false_type);
+        if ($compare_types === $is_true_type) {
+            $default_arg_type = isset($method_call->get_args()[1]) ? $scope->get_type($method_call->get_args()[1]->value) : new Null_Type();
+            return Type_Combinator::union($default_arg_type, new String_Type());
         }
-        if ($compareTypes === $isFalseType) {
-            return new ArrayType(new IntegerType(), new StringType());
+        if ($compare_types === $is_false_type) {
+            return new Array_Type(new Integer_Type(), new String_Type());
         }
-
         return null;
     }
-
 }

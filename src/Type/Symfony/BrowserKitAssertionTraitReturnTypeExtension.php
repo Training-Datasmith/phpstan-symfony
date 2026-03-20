@@ -1,74 +1,55 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function count;
-
-use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Identifier;
-use PHPStan\Analyser\Scope;
-use PHPStan\Type\ExpressionTypeResolverExtension;
-use PHPStan\Type\NullType;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\UnionType;
-
-final class BrowserKitAssertionTraitReturnTypeExtension implements ExpressionTypeResolverExtension
+use Php_Parser\Node\Expr;
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Parser\Node\Identifier;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Type\Expression_Type_Resolver_Extension;
+use Php_Stan\Type\Null_Type;
+use Php_Stan\Type\Object_Type;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
+use Php_Stan\Type\Union_Type;
+final class Browser_Kit_Assertion_Trait_Return_Type_Extension implements Expression_Type_Resolver_Extension
 {
     private const TRAIT_NAME = 'Symfony\Bundle\FrameworkBundle\Test\BrowserKitAssertionsTrait';
     private const TRAIT_METHOD_NAME = 'getclient';
-
-    public function getType(Expr $expr, Scope $scope): ?Type
+    public function get_type(Expr $expr, Scope $scope): ?Type
     {
-        if ($this->isSupported($expr, $scope)) {
-            $args = $expr->getArgs();
+        if ($this->is_supported($expr, $scope)) {
+            $args = $expr->get_args();
             if (count($args) > 0) {
-                return TypeCombinator::intersect(
-                    $scope->getType($args[0]->value),
-                    new UnionType([
-                        new ObjectType('Symfony\Component\BrowserKit\AbstractBrowser'),
-                        new NullType(),
-                    ]),
-                );
+                return Type_Combinator::intersect($scope->get_type($args[0]->value), new Union_Type([new Object_Type('Symfony\Component\BrowserKit\AbstractBrowser'), new Null_Type()]));
             }
-
-            return new ObjectType('Symfony\Component\BrowserKit\AbstractBrowser');
+            return new Object_Type('Symfony\Component\BrowserKit\AbstractBrowser');
         }
-
         return null;
     }
-
     /**
      * @phpstan-assert-if-true =MethodCall $expr
      */
-    private function isSupported(Expr $expr, Scope $scope): bool
+    private function is_supported(Expr $expr, Scope $scope): bool
     {
-        if (!($expr instanceof MethodCall) || !($expr->name instanceof Identifier) || $expr->name->toLowerString() !== self::TRAIT_METHOD_NAME) {
+        if (!$expr instanceof Method_Call || !$expr->name instanceof Identifier || $expr->name->to_lower_string() !== self::TRAIT_METHOD_NAME) {
             return false;
         }
-
-        if (!$scope->isInClass()) {
+        if (!$scope->is_in_class()) {
             return false;
         }
-
-        $methodReflection = $scope->getMethodReflection($scope->getType($expr->var), $expr->name->toString());
-        if ($methodReflection === null) {
+        $method_reflection = $scope->get_method_reflection($scope->get_type($expr->var), $expr->name->to_string());
+        if ($method_reflection === null) {
             return false;
         }
-
-        $reflectionClass = $methodReflection->getDeclaringClass()->getNativeReflection();
-        if (!$reflectionClass->hasMethod(self::TRAIT_METHOD_NAME)) {
+        $reflection_class = $method_reflection->get_declaring_class()->get_native_reflection();
+        if (!$reflection_class->has_method(self::TRAIT_METHOD_NAME)) {
             return false;
         }
-
-        $traitMethodReflection = $reflectionClass->getMethod(self::TRAIT_METHOD_NAME);
-        $declaringClassReflection = $traitMethodReflection->getBetterReflection()->getDeclaringClass();
-
-        return $declaringClassReflection->getName() === self::TRAIT_NAME;
+        $trait_method_reflection = $reflection_class->get_method(self::TRAIT_METHOD_NAME);
+        $declaring_class_reflection = $trait_method_reflection->get_better_reflection()->get_declaring_class();
+        return $declaring_class_reflection->get_name() === self::TRAIT_NAME;
     }
-
 }

@@ -1,30 +1,23 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony\Config\Value_Object;
 
-namespace PHPStan\Type\Symfony\Config\ValueObject;
-
-use PHPStan\Type\ObjectType;
-
-class TreeBuilderType extends ObjectType
+use Php_Stan\Type\Object_Type;
+class Tree_Builder_Type extends Object_Type
 {
-    private string $rootNodeClassName;
-
-    public function __construct(string $className, string $rootNodeClassName)
+    private string $root_node_class_name;
+    public function __construct(string $class_name, string $root_node_class_name)
     {
-        parent::__construct($className);
-
-        $this->rootNodeClassName = $rootNodeClassName;
+        parent::__construct($class_name);
+        $this->root_node_class_name = $root_node_class_name;
     }
-
-    public function getRootNodeClassName(): string
+    public function get_root_node_class_name(): string
     {
-        return $this->rootNodeClassName;
+        return $this->root_node_class_name;
     }
-
-    protected function describeAdditionalCacheKey(): string
+    protected function describe_additional_cache_key(): string
     {
-        return $this->getRootNodeClassName();
+        return $this->get_root_node_class_name();
     }
-
 }

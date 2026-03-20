@@ -1,49 +1,37 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
-namespace PHPStan\Type\Symfony;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\ParametersAcceptorSelector;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\GeneralizePrecision;
-use PHPStan\Type\Type;
-
-final class CacheInterfaceGetDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Reflection\Parameters_Acceptor_Selector;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Generalize_Precision;
+use Php_Stan\Type\Type;
+final class Cache_Interface_Get_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    public function getClass(): string
+    public function get_class(): string
     {
         return 'Symfony\Contracts\Cache\CacheInterface';
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === 'get';
+        return $method_reflection->get_name() === 'get';
     }
-
-    public function getTypeFromMethodCall(MethodReflection $methodReflection, MethodCall $methodCall, Scope $scope): ?Type
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
     {
-        if (!isset($methodCall->getArgs()[1])) {
+        if (!isset($method_call->get_args()[1])) {
             return null;
         }
-
-        $callbackReturnType = $scope->getType($methodCall->getArgs()[1]->value);
-        if ($callbackReturnType->isCallable()->yes()) {
-            $parametersAcceptor = ParametersAcceptorSelector::selectFromArgs(
-                $scope,
-                $methodCall->getArgs(),
-                $callbackReturnType->getCallableParametersAcceptors($scope),
-            );
-            $returnType = $parametersAcceptor->getReturnType();
-
+        $callback_return_type = $scope->get_type($method_call->get_args()[1]->value);
+        if ($callback_return_type->is_callable()->yes()) {
+            $parameters_acceptor = Parameters_Acceptor_Selector::select_from_args($scope, $method_call->get_args(), $callback_return_type->get_callable_parameters_acceptors($scope));
+            $return_type = $parameters_acceptor->get_return_type();
             // generalize template parameters
-            return $returnType->generalize(GeneralizePrecision::templateArgument());
+            return $return_type->generalize(Generalize_Precision::template_argument());
         }
-
         return null;
     }
-
 }

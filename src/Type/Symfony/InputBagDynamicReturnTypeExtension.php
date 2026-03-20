@@ -1,84 +1,61 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function in_array;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\ParametersAcceptorSelector;
-use PHPStan\ShouldNotHappenException;
-use PHPStan\Type\ArrayType;
-use PHPStan\Type\BooleanType;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\FloatType;
-use PHPStan\Type\IntegerType;
-use PHPStan\Type\MixedType;
-use PHPStan\Type\NullType;
-use PHPStan\Type\StringType;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\UnionType;
-
-final class InputBagDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Reflection\Parameters_Acceptor_Selector;
+use Php_Stan\Should_Not_Happen_Exception;
+use Php_Stan\Type\Array_Type;
+use Php_Stan\Type\Boolean_Type;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Float_Type;
+use Php_Stan\Type\Integer_Type;
+use Php_Stan\Type\Mixed_Type;
+use Php_Stan\Type\Null_Type;
+use Php_Stan\Type\String_Type;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
+use Php_Stan\Type\Union_Type;
+final class Input_Bag_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    public function getClass(): string
+    public function get_class(): string
     {
         return 'Symfony\Component\HttpFoundation\InputBag';
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return in_array($methodReflection->getName(), ['get', 'all'], true);
+        return in_array($method_reflection->get_name(), ['get', 'all'], true);
     }
-
-    public function getTypeFromMethodCall(
-        MethodReflection $methodReflection,
-        MethodCall $methodCall,
-        Scope $scope
-    ): ?Type {
-        if ($methodReflection->getName() === 'get') {
-            return $this->getGetTypeFromMethodCall($methodReflection, $methodCall, $scope);
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
+    {
+        if ($method_reflection->get_name() === 'get') {
+            return $this->get_get_type_from_method_call($method_reflection, $method_call, $scope);
         }
-
-        if ($methodReflection->getName() === 'all') {
-            return $this->getAllTypeFromMethodCall($methodCall);
+        if ($method_reflection->get_name() === 'all') {
+            return $this->get_all_type_from_method_call($method_call);
         }
-
-        throw new ShouldNotHappenException();
+        throw new Should_Not_Happen_Exception();
     }
-
-    private function getGetTypeFromMethodCall(
-        MethodReflection $methodReflection,
-        MethodCall $methodCall,
-        Scope $scope
-    ): ?Type {
-        if (isset($methodCall->getArgs()[1])) {
-            $argType = $scope->getType($methodCall->getArgs()[1]->value);
-            $isNull = (new NullType())->isSuperTypeOf($argType);
-            if ($isNull->no()) {
-                return TypeCombinator::removeNull(ParametersAcceptorSelector::selectFromArgs(
-                    $scope,
-                    $methodCall->getArgs(),
-                    $methodReflection->getVariants(),
-                )->getReturnType());
+    private function get_get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
+    {
+        if (isset($method_call->get_args()[1])) {
+            $arg_type = $scope->get_type($method_call->get_args()[1]->value);
+            $is_null = (new Null_Type())->is_super_type_of($arg_type);
+            if ($is_null->no()) {
+                return Type_Combinator::remove_null(Parameters_Acceptor_Selector::select_from_args($scope, $method_call->get_args(), $method_reflection->get_variants())->get_return_type());
             }
         }
-
         return null;
     }
-
-    private function getAllTypeFromMethodCall(
-        MethodCall $methodCall
-    ): Type {
-        if (isset($methodCall->getArgs()[0])) {
-            return new ArrayType(new MixedType(), new MixedType(true));
+    private function get_all_type_from_method_call(Method_Call $method_call): Type
+    {
+        if (isset($method_call->get_args()[0])) {
+            return new Array_Type(new Mixed_Type(), new Mixed_Type(true));
         }
-
-        return new ArrayType(new StringType(), new UnionType([new ArrayType(new MixedType(), new MixedType(true)), new BooleanType(), new FloatType(), new IntegerType(), new StringType()]));
+        return new Array_Type(new String_Type(), new Union_Type([new Array_Type(new Mixed_Type(), new Mixed_Type(true)), new Boolean_Type(), new Float_Type(), new Integer_Type(), new String_Type()]));
     }
-
 }

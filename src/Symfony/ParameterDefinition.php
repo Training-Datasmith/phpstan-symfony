@@ -1,19 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
 /**
  * @api
  */
-interface ParameterDefinition
+interface Parameter_Definition
 {
-    public function getKey(): string;
-
+    public function get_key(): string;
     /**
      * @return array<mixed>|bool|float|int|string
      */
-    public function getValue();
-
+    public function get_value();
 }

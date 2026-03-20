@@ -1,94 +1,72 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
 use function file_exists;
 use function get_class;
 use function is_readable;
 use function method_exists;
-
-use PHPStan\Reflection\ClassReflection;
-use PHPStan\ShouldNotHappenException;
-use PHPStan\Type\ObjectType;
-
+use Php_Stan\Reflection\Class_Reflection;
+use Php_Stan\Should_Not_Happen_Exception;
+use Php_Stan\Type\Object_Type;
 use function sprintf;
-
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
-
-final class ConsoleApplicationResolver
+final class Console_Application_Resolver
 {
-    private ?string $consoleApplicationLoader = null;
-
-    private ?Application $consoleApplication = null;
-
-    public function __construct(?string $consoleApplicationLoader)
+    private ?string $console_application_loader = null;
+    private ?Application $console_application = null;
+    public function __construct(?string $console_application_loader)
     {
-        $this->consoleApplicationLoader = $consoleApplicationLoader;
+        $this->console_application_loader = $console_application_loader;
     }
-
-    public function hasConsoleApplicationLoader(): bool
+    public function has_console_application_loader(): bool
     {
-        return $this->consoleApplicationLoader !== null;
+        return $this->console_application_loader !== null;
     }
-
-    private function getConsoleApplication(): ?Application
+    private function get_console_application(): ?Application
     {
-        if ($this->consoleApplicationLoader === null) {
+        if ($this->console_application_loader === null) {
             return null;
         }
-
-        if ($this->consoleApplication !== null) {
-            return $this->consoleApplication;
+        if ($this->console_application !== null) {
+            return $this->console_application;
         }
-
-        if (!file_exists($this->consoleApplicationLoader)
-            || !is_readable($this->consoleApplicationLoader)
-        ) {
-            throw new ShouldNotHappenException(sprintf('Cannot load console application. Check the parameters.symfony.consoleApplicationLoader setting in PHPStan\'s config. The offending value is "%s".', $this->consoleApplicationLoader));
+        if (!file_exists($this->console_application_loader) || !is_readable($this->console_application_loader)) {
+            throw new Should_Not_Happen_Exception(sprintf('Cannot load console application. Check the parameters.symfony.consoleApplicationLoader setting in PHPStan\'s config. The offending value is "%s".', $this->console_application_loader));
         }
-
-        return $this->consoleApplication = require $this->consoleApplicationLoader;
+        return $this->console_application = require $this->console_application_loader;
     }
-
     /**
      * @return Command[]
      */
-    public function findCommands(ClassReflection $classReflection): array
+    public function find_commands(Class_Reflection $class_reflection): array
     {
-        $consoleApplication = $this->getConsoleApplication();
-        if ($consoleApplication === null) {
+        $console_application = $this->get_console_application();
+        if ($console_application === null) {
             return [];
         }
-
-        $classType = new ObjectType($classReflection->getName());
-        if (!(new ObjectType(\Symfony\Component\Console\Command\Command::class))->isSuperTypeOf($classType)->yes()) {
+        $class_type = new Object_Type($class_reflection->get_name());
+        if (!(new Object_Type(\Symfony\Component\Console\Command\Command::class))->is_super_type_of($class_type)->yes()) {
             return [];
         }
-
         $commands = [];
-        foreach ($consoleApplication->all() as $name => $command) {
-            $commandClass = new ObjectType(get_class($command));
-            $isLazyCommand = (new ObjectType(\Symfony\Component\Console\Command\LazyCommand::class))->isSuperTypeOf($commandClass)->yes();
-
-            if ($isLazyCommand && method_exists($command, 'getCommand')) {
+        foreach ($console_application->all() as $name => $command) {
+            $command_class = new Object_Type(get_class($command));
+            $is_lazy_command = (new Object_Type(\Symfony\Component\Console\Command\Lazy_Command::class))->is_super_type_of($command_class)->yes();
+            if ($is_lazy_command && method_exists($command, 'getCommand')) {
                 /** @var Command $wrappedCommand */
-                $wrappedCommand = $command->getCommand();
-                if (!$classType->isSuperTypeOf(new ObjectType(get_class($wrappedCommand)))->yes()) {
+                $wrapped_command = $command->get_command();
+                if (!$class_type->is_super_type_of(new Object_Type(get_class($wrapped_command)))->yes()) {
                     continue;
                 }
             }
-
-            if (!$isLazyCommand && !$classType->isSuperTypeOf($commandClass)->yes()) {
+            if (!$is_lazy_command && !$class_type->is_super_type_of($command_class)->yes()) {
                 continue;
             }
-
             $commands[$name] = $command;
         }
-
         return $commands;
     }
-
 }

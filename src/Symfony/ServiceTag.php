@@ -1,31 +1,25 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-final class ServiceTag implements ServiceTagDefinition
+final class Service_Tag implements Service_Tag_Definition
 {
     private string $name;
-
     /** @var array<string, string> */
     private array $attributes;
-
     /** @param array<string, string> $attributes */
     public function __construct(string $name, array $attributes = [])
     {
         $this->name = $name;
         $this->attributes = $attributes;
     }
-
-    public function getName(): string
+    public function get_name(): string
     {
         return $this->name;
     }
-
-    public function getAttributes(): array
+    public function get_attributes(): array
     {
         return $this->attributes;
     }
-
 }

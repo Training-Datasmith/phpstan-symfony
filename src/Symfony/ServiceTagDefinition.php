@@ -1,14 +1,11 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-interface ServiceTagDefinition
+interface Service_Tag_Definition
 {
-    public function getName(): string;
-
+    public function get_name(): string;
     /** @return array<string, string> */
-    public function getAttributes(): array;
-
+    public function get_attributes(): array;
 }

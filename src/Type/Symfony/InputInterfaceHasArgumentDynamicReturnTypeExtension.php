@@ -1,86 +1,68 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function array_unique;
 use function count;
 use function in_array;
-
 use InvalidArgumentException;
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Symfony\ConsoleApplicationResolver;
-use PHPStan\Type\Constant\ConstantBooleanType;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\Type;
-
-final class InputInterfaceHasArgumentDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Symfony\Console_Application_Resolver;
+use Php_Stan\Type\Constant\Constant_Boolean_Type;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Type;
+final class Input_Interface_Has_Argument_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    private ConsoleApplicationResolver $consoleApplicationResolver;
-
-    public function __construct(ConsoleApplicationResolver $consoleApplicationResolver)
+    private Console_Application_Resolver $console_application_resolver;
+    public function __construct(Console_Application_Resolver $console_application_resolver)
     {
-        $this->consoleApplicationResolver = $consoleApplicationResolver;
+        $this->console_application_resolver = $console_application_resolver;
     }
-
-    public function getClass(): string
+    public function get_class(): string
     {
-        return \Symfony\Component\Console\Input\InputInterface::class;
+        return \Symfony\Component\Console\Input\Input_Interface::class;
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === 'hasArgument';
+        return $method_reflection->get_name() === 'hasArgument';
     }
-
-    public function getTypeFromMethodCall(MethodReflection $methodReflection, MethodCall $methodCall, Scope $scope): ?Type
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
     {
-        if (!isset($methodCall->getArgs()[0])) {
+        if (!isset($method_call->get_args()[0])) {
             return null;
         }
-
-        $classReflection = $scope->getClassReflection();
-        if ($classReflection === null) {
+        $class_reflection = $scope->get_class_reflection();
+        if ($class_reflection === null) {
             return null;
         }
-
-        $argStrings = $scope->getType($methodCall->getArgs()[0]->value)->getConstantStrings();
-        if (count($argStrings) !== 1) {
+        $arg_strings = $scope->get_type($method_call->get_args()[0]->value)->get_constant_strings();
+        if (count($arg_strings) !== 1) {
             return null;
         }
-        $argName = $argStrings[0]->getValue();
-
-        if ($argName === 'command') {
-            $method = $scope->getFunction();
-            if (
-                $method instanceof MethodReflection
-                && ($method->getName() === 'interact' || $method->getName() === 'initialize')
-                && in_array(\Symfony\Component\Console\Command\Command::class, $method->getDeclaringClass()->getParentClassesNames(), true)
-            ) {
+        $arg_name = $arg_strings[0]->get_value();
+        if ($arg_name === 'command') {
+            $method = $scope->get_function();
+            if ($method instanceof Method_Reflection && ($method->get_name() === 'interact' || $method->get_name() === 'initialize') && in_array(\Symfony\Component\Console\Command\Command::class, $method->get_declaring_class()->get_parent_classes_names(), true)) {
                 return null;
             }
         }
-
-        $returnTypes = [];
-        foreach ($this->consoleApplicationResolver->findCommands($classReflection) as $command) {
+        $return_types = [];
+        foreach ($this->console_application_resolver->find_commands($class_reflection) as $command) {
             try {
-                $command->mergeApplicationDefinition();
-                $command->getDefinition()->getArgument($argName);
-                $returnTypes[] = true;
+                $command->merge_application_definition();
+                $command->get_definition()->get_argument($arg_name);
+                $return_types[] = true;
             } catch (InvalidArgumentException $e) {
-                $returnTypes[] = false;
+                $return_types[] = false;
             }
         }
-
-        if (count($returnTypes) === 0) {
+        if (count($return_types) === 0) {
             return null;
         }
-
-        $returnTypes = array_unique($returnTypes);
-        return count($returnTypes) === 1 ? new ConstantBooleanType($returnTypes[0]) : null;
+        $return_types = array_unique($return_types);
+        return count($return_types) === 1 ? new Constant_Boolean_Type($return_types[0]) : null;
     }
-
 }

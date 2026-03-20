@@ -1,25 +1,18 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
 /**
  * @api
  */
-interface ServiceDefinition
+interface Service_Definition
 {
-    public function getId(): string;
-
-    public function getClass(): ?string;
-
-    public function isPublic(): bool;
-
-    public function isSynthetic(): bool;
-
-    public function getAlias(): ?string;
-
+    public function get_id(): string;
+    public function get_class(): ?string;
+    public function is_public(): bool;
+    public function is_synthetic(): bool;
+    public function get_alias(): ?string;
     /** @return ServiceTag[] */
-    public function getTags(): array;
-
+    public function get_tags(): array;
 }

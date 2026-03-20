@@ -1,30 +1,21 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-use PHPStan\Command\Output;
-use PHPStan\Diagnose\DiagnoseExtension;
-
+use Php_Stan\Command\Output;
+use Php_Stan\Diagnose\Diagnose_Extension;
 use function sprintf;
-
-class SymfonyDiagnoseExtension implements DiagnoseExtension
+class Symfony_Diagnose_Extension implements Diagnose_Extension
 {
-    private ConsoleApplicationResolver $consoleApplicationResolver;
-
-    public function __construct(ConsoleApplicationResolver $consoleApplicationResolver)
+    private Console_Application_Resolver $console_application_resolver;
+    public function __construct(Console_Application_Resolver $console_application_resolver)
     {
-        $this->consoleApplicationResolver = $consoleApplicationResolver;
+        $this->console_application_resolver = $console_application_resolver;
     }
-
     public function print(Output $output): void
     {
-        $output->writeLineFormatted(sprintf(
-            '<info>Symfony\'s consoleApplicationLoader:</info> %s',
-            $this->consoleApplicationResolver->hasConsoleApplicationLoader() ? 'In use' : 'No',
-        ));
-        $output->writeLineFormatted('');
+        $output->write_line_formatted(sprintf('<info>Symfony\'s consoleApplicationLoader:</info> %s', $this->console_application_resolver->has_console_application_loader() ? 'In use' : 'No'));
+        $output->write_line_formatted('');
     }
-
 }

@@ -1,30 +1,24 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function count;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Type\ArrayType;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\MixedType;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Type\Array_Type;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Mixed_Type;
+use Php_Stan\Type\Object_Type;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
 use function substr;
-
-class SerializerDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+class Serializer_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
     /** @var class-string */
     private string $class;
-
     private string $method;
-
     /**
      * @param class-string $class
      */
@@ -33,44 +27,35 @@ class SerializerDynamicReturnTypeExtension implements DynamicMethodReturnTypeExt
         $this->class = $class;
         $this->method = $method;
     }
-
-    public function getClass(): string
+    public function get_class(): string
     {
         return $this->class;
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === $this->method;
+        return $method_reflection->get_name() === $this->method;
     }
-
-    public function getTypeFromMethodCall(MethodReflection $methodReflection, MethodCall $methodCall, Scope $scope): Type
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): Type
     {
-        if (!isset($methodCall->getArgs()[1])) {
-            return new MixedType();
+        if (!isset($method_call->get_args()[1])) {
+            return new Mixed_Type();
         }
-
-        $argType = $scope->getType($methodCall->getArgs()[1]->value);
-        if (count($argType->getConstantStrings()) === 0) {
-            return new MixedType();
+        $arg_type = $scope->get_type($method_call->get_args()[1]->value);
+        if (count($arg_type->get_constant_strings()) === 0) {
+            return new Mixed_Type();
         }
-
         $types = [];
-        foreach ($argType->getConstantStrings() as $constantString) {
-            $types[] = $this->getType($constantString->getValue());
+        foreach ($arg_type->get_constant_strings() as $constant_string) {
+            $types[] = $this->get_type($constant_string->get_value());
         }
-
-        return TypeCombinator::union(...$types);
+        return Type_Combinator::union(...$types);
     }
-
-    private function getType(string $objectName): Type
+    private function get_type(string $object_name): Type
     {
-        if (substr($objectName, -2) === '[]') {
+        if (substr($object_name, -2) === '[]') {
             // The key type is determined by the data
-            return new ArrayType(new MixedType(false), $this->getType(substr($objectName, 0, -2)));
+            return new Array_Type(new Mixed_Type(false), $this->get_type(substr($object_name, 0, -2)));
         }
-
-        return new ObjectType($objectName);
+        return new Object_Type($object_name);
     }
-
 }

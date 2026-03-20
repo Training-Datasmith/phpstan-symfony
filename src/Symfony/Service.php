@@ -1,33 +1,20 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-final class Service implements ServiceDefinition
+final class Service implements Service_Definition
 {
     private string $id;
-
     private ?string $class = null;
-
     private bool $public;
-
     private bool $synthetic;
-
     private ?string $alias = null;
-
     /** @var ServiceTag[] */
     private array $tags;
-
     /** @param ServiceTag[] $tags */
-    public function __construct(
-        string $id,
-        ?string $class,
-        bool $public,
-        bool $synthetic,
-        ?string $alias,
-        array $tags = []
-    ) {
+    public function __construct(string $id, ?string $class, bool $public, bool $synthetic, ?string $alias, array $tags = [])
+    {
         $this->id = $id;
         $this->class = $class;
         $this->public = $public;
@@ -35,35 +22,28 @@ final class Service implements ServiceDefinition
         $this->alias = $alias;
         $this->tags = $tags;
     }
-
-    public function getId(): string
+    public function get_id(): string
     {
         return $this->id;
     }
-
-    public function getClass(): ?string
+    public function get_class(): ?string
     {
         return $this->class;
     }
-
-    public function isPublic(): bool
+    public function is_public(): bool
     {
         return $this->public;
     }
-
-    public function isSynthetic(): bool
+    public function is_synthetic(): bool
     {
         return $this->synthetic;
     }
-
-    public function getAlias(): ?string
+    public function get_alias(): ?string
     {
         return $this->alias;
     }
-
-    public function getTags(): array
+    public function get_tags(): array
     {
         return $this->tags;
     }
-
 }

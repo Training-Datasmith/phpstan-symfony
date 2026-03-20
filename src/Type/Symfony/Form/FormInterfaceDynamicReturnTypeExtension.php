@@ -1,64 +1,46 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony\Form;
 
-namespace PHPStan\Type\Symfony\Form;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Type\Constant\ConstantBooleanType;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\Generic\GenericObjectType;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\Type;
-use PHPStan\Type\UnionType;
-use Symfony\Component\Form\FormError;
-use Symfony\Component\Form\FormErrorIterator;
-use Symfony\Component\Form\FormInterface;
-
-final class FormInterfaceDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Type\Constant\Constant_Boolean_Type;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Generic\Generic_Object_Type;
+use Php_Stan\Type\Object_Type;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Union_Type;
+use Symfony\Component\Form\Form_Error;
+use Symfony\Component\Form\Form_Error_Iterator;
+use Symfony\Component\Form\Form_Interface;
+final class Form_Interface_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    public function getClass(): string
+    public function get_class(): string
     {
-        return FormInterface::class;
+        return Form_Interface::class;
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === 'getErrors';
+        return $method_reflection->get_name() === 'getErrors';
     }
-
-    public function getTypeFromMethodCall(
-        MethodReflection $methodReflection,
-        MethodCall $methodCall,
-        Scope $scope
-    ): Type {
-        if (!isset($methodCall->getArgs()[1])) {
-            return new GenericObjectType(FormErrorIterator::class, [new ObjectType(FormError::class)]);
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): Type
+    {
+        if (!isset($method_call->get_args()[1])) {
+            return new Generic_Object_Type(Form_Error_Iterator::class, [new Object_Type(Form_Error::class)]);
         }
-
-        $firstArgType = $scope->getType($methodCall->getArgs()[0]->value);
-        $secondArgType = $scope->getType($methodCall->getArgs()[1]->value);
-
-        $firstIsTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($firstArgType)->result;
-        $firstIsFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($firstArgType)->result;
-        $secondIsTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($secondArgType)->result;
-        $secondIsFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($secondArgType)->result;
-
-        $firstCompareType = $firstIsTrueType->compareTo($firstIsFalseType);
-        $secondCompareType = $secondIsTrueType->compareTo($secondIsFalseType);
-
-        if ($firstCompareType === $firstIsTrueType && $secondCompareType === $secondIsFalseType) {
-            return new GenericObjectType(FormErrorIterator::class, [
-                new UnionType([
-                    new ObjectType(FormError::class),
-                    new ObjectType(FormErrorIterator::class),
-                ]),
-            ]);
+        $first_arg_type = $scope->get_type($method_call->get_args()[0]->value);
+        $second_arg_type = $scope->get_type($method_call->get_args()[1]->value);
+        $first_is_true_type = (new Constant_Boolean_Type(true))->is_super_type_of($first_arg_type)->result;
+        $first_is_false_type = (new Constant_Boolean_Type(false))->is_super_type_of($first_arg_type)->result;
+        $second_is_true_type = (new Constant_Boolean_Type(true))->is_super_type_of($second_arg_type)->result;
+        $second_is_false_type = (new Constant_Boolean_Type(false))->is_super_type_of($second_arg_type)->result;
+        $first_compare_type = $first_is_true_type->compare_to($first_is_false_type);
+        $second_compare_type = $second_is_true_type->compare_to($second_is_false_type);
+        if ($first_compare_type === $first_is_true_type && $second_compare_type === $second_is_false_type) {
+            return new Generic_Object_Type(Form_Error_Iterator::class, [new Union_Type([new Object_Type(Form_Error::class), new Object_Type(Form_Error_Iterator::class)])]);
         }
-
-        return new GenericObjectType(FormErrorIterator::class, [new ObjectType(FormError::class)]);
+        return new Generic_Object_Type(Form_Error_Iterator::class, [new Object_Type(Form_Error::class)]);
     }
-
 }

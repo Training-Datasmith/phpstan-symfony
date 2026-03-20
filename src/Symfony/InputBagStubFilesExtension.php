@@ -1,35 +1,25 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-use PHPStan\BetterReflection\Reflector\Exception\IdentifierNotFound;
-use PHPStan\BetterReflection\Reflector\Reflector;
-use PHPStan\PhpDoc\StubFilesExtension;
-
-class InputBagStubFilesExtension implements StubFilesExtension
+use Php_Stan\Better_Reflection\Reflector\Exception\Identifier_Not_Found;
+use Php_Stan\Better_Reflection\Reflector\Reflector;
+use Php_Stan\Php_Doc\Stub_Files_Extension;
+class Input_Bag_Stub_Files_Extension implements Stub_Files_Extension
 {
     private Reflector $reflector;
-
-    public function __construct(
-        Reflector $reflector
-    ) {
+    public function __construct(Reflector $reflector)
+    {
         $this->reflector = $reflector;
     }
-
-    public function getFiles(): array
+    public function get_files(): array
     {
         try {
-            $this->reflector->reflectClass('Symfony\Component\HttpFoundation\InputBag');
-        } catch (IdentifierNotFound $e) {
+            $this->reflector->reflect_class('Symfony\Component\HttpFoundation\InputBag');
+        } catch (Identifier_Not_Found $e) {
             return [];
         }
-
-        return [
-            __DIR__ . '/../../stubs/Symfony/Component/HttpFoundation/InputBag.stub',
-            __DIR__ . '/../../stubs/Symfony/Component/HttpFoundation/Request.stub',
-        ];
+        return [__DIR__ . '/../../stubs/Symfony/Component/HttpFoundation/InputBag.stub', __DIR__ . '/../../stubs/Symfony/Component/HttpFoundation/Request.stub'];
     }
-
 }

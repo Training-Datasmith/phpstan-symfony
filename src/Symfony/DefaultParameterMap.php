@@ -1,20 +1,16 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
 use function array_map;
-
-use PhpParser\Node\Expr;
-use PHPStan\Analyser\Scope;
-use PHPStan\Type\Type;
-
-final class DefaultParameterMap implements ParameterMap
+use Php_Parser\Node\Expr;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Type\Type;
+final class Default_Parameter_Map implements Parameter_Map
 {
     /** @var ParameterDefinition[] */
     private array $parameters;
-
     /**
      * @param ParameterDefinition[] $parameters
      */
@@ -22,25 +18,20 @@ final class DefaultParameterMap implements ParameterMap
     {
         $this->parameters = $parameters;
     }
-
     /**
      * @return ParameterDefinition[]
      */
-    public function getParameters(): array
+    public function get_parameters(): array
     {
         return $this->parameters;
     }
-
-    public function getParameter(string $key): ?ParameterDefinition
+    public function get_parameter(string $key): ?Parameter_Definition
     {
         return $this->parameters[$key] ?? null;
     }
-
-    public static function getParameterKeysFromNode(Expr $node, Scope $scope): array
+    public static function get_parameter_keys_from_node(Expr $node, Scope $scope): array
     {
-        $strings = $scope->getType($node)->getConstantStrings();
-
-        return array_map(static fn (Type $type): string => $type->getValue(), $strings);
+        $strings = $scope->get_type($node)->get_constant_strings();
+        return array_map(static fn(Type $type): string => $type->get_value(), $strings);
     }
-
 }

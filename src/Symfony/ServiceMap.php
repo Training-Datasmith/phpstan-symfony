@@ -1,24 +1,19 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-use PhpParser\Node\Expr;
-use PHPStan\Analyser\Scope;
-
+use Php_Parser\Node\Expr;
+use Php_Stan\Analyser\Scope;
 /**
  * @api
  */
-interface ServiceMap
+interface Service_Map
 {
     /**
      * @return ServiceDefinition[]
      */
-    public function getServices(): array;
-
-    public function getService(string $id): ?ServiceDefinition;
-
-    public static function getServiceIdFromNode(Expr $node, Scope $scope): ?string;
-
+    public function get_services(): array;
+    public function get_service(string $id): ?Service_Definition;
+    public static function get_service_id_from_node(Expr $node, Scope $scope): ?string;
 }

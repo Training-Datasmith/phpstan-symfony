@@ -1,58 +1,43 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
-namespace PHPStan\Type\Symfony;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Analyser\SpecifiedTypes;
-use PHPStan\Analyser\TypeSpecifier;
-use PHPStan\Analyser\TypeSpecifierAwareExtension;
-use PHPStan\Analyser\TypeSpecifierContext;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\ParametersAcceptorSelector;
-use PHPStan\Type\MethodTypeSpecifyingExtension;
-use PHPStan\Type\TypeCombinator;
-
-final class RequestTypeSpecifyingExtension implements MethodTypeSpecifyingExtension, TypeSpecifierAwareExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Analyser\Specified_Types;
+use Php_Stan\Analyser\Type_Specifier;
+use Php_Stan\Analyser\Type_Specifier_Aware_Extension;
+use Php_Stan\Analyser\Type_Specifier_Context;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Reflection\Parameters_Acceptor_Selector;
+use Php_Stan\Type\Method_Type_Specifying_Extension;
+use Php_Stan\Type\Type_Combinator;
+final class Request_Type_Specifying_Extension implements Method_Type_Specifying_Extension, Type_Specifier_Aware_Extension
 {
     private const REQUEST_CLASS = 'Symfony\Component\HttpFoundation\Request';
     private const HAS_METHOD_NAME = 'hasSession';
     private const GET_METHOD_NAME = 'getSession';
-
-    private TypeSpecifier $typeSpecifier;
-
-    public function getClass(): string
+    private Type_Specifier $type_specifier;
+    public function get_class(): string
     {
         return self::REQUEST_CLASS;
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection, MethodCall $node, TypeSpecifierContext $context): bool
+    public function is_method_supported(Method_Reflection $method_reflection, Method_Call $node, Type_Specifier_Context $context): bool
     {
-        return $methodReflection->getName() === self::HAS_METHOD_NAME && !$context->null();
+        return $method_reflection->get_name() === self::HAS_METHOD_NAME && !$context->null();
     }
-
-    public function specifyTypes(MethodReflection $methodReflection, MethodCall $node, Scope $scope, TypeSpecifierContext $context): SpecifiedTypes
+    public function specify_types(Method_Reflection $method_reflection, Method_Call $node, Scope $scope, Type_Specifier_Context $context): Specified_Types
     {
-        $methodVariants = $methodReflection->getDeclaringClass()->getNativeMethod(self::GET_METHOD_NAME)->getVariants();
-        $returnType = ParametersAcceptorSelector::selectFromArgs($scope, $node->getArgs(), $methodVariants)->getReturnType();
-
-        if (!TypeCombinator::containsNull($returnType)) {
-            return new SpecifiedTypes();
+        $method_variants = $method_reflection->get_declaring_class()->get_native_method(self::GET_METHOD_NAME)->get_variants();
+        $return_type = Parameters_Acceptor_Selector::select_from_args($scope, $node->get_args(), $method_variants)->get_return_type();
+        if (!Type_Combinator::contains_null($return_type)) {
+            return new Specified_Types();
         }
-
-        return $this->typeSpecifier->create(
-            new MethodCall($node->var, self::GET_METHOD_NAME),
-            TypeCombinator::removeNull($returnType),
-            $context,
-            $scope,
-        );
+        return $this->type_specifier->create(new Method_Call($node->var, self::GET_METHOD_NAME), Type_Combinator::remove_null($return_type), $context, $scope);
     }
-
-    public function setTypeSpecifier(TypeSpecifier $typeSpecifier): void
+    public function set_type_specifier(Type_Specifier $type_specifier): void
     {
-        $this->typeSpecifier = $typeSpecifier;
+        $this->type_specifier = $type_specifier;
     }
-
 }

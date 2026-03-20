@@ -1,105 +1,83 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
-namespace PHPStan\Type\Symfony;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\NullType;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Class_Reflection;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Reflection\Reflection_Provider;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Null_Type;
+use Php_Stan\Type\Object_Type;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
 use function str_contains;
 use function strrpos;
 use function substr_replace;
-
-class ExtensionGetConfigurationReturnTypeExtension implements DynamicMethodReturnTypeExtension
+class Extension_Get_Configuration_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    private ReflectionProvider $reflectionProvider;
-
-    public function __construct(ReflectionProvider $reflectionProvider)
+    private Reflection_Provider $reflection_provider;
+    public function __construct(Reflection_Provider $reflection_provider)
     {
-        $this->reflectionProvider = $reflectionProvider;
+        $this->reflection_provider = $reflection_provider;
     }
-
-    public function getClass(): string
+    public function get_class(): string
     {
         return 'Symfony\Component\DependencyInjection\Extension\Extension';
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === 'getConfiguration'
-            && $methodReflection->getDeclaringClass()->getName() === 'Symfony\Component\DependencyInjection\Extension\Extension';
+        return $method_reflection->get_name() === 'getConfiguration' && $method_reflection->get_declaring_class()->get_name() === 'Symfony\Component\DependencyInjection\Extension\Extension';
     }
-
-    public function getTypeFromMethodCall(
-        MethodReflection $methodReflection,
-        MethodCall $methodCall,
-        Scope $scope
-    ): ?Type {
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
+    {
         $types = [];
-        $extensionType = $scope->getType($methodCall->var);
-        $classes = $extensionType->getObjectClassNames();
-
-        foreach ($classes as $extensionName) {
-            if (str_contains($extensionName, "\0")) {
-                $types[] = new NullType();
+        $extension_type = $scope->get_type($method_call->var);
+        $classes = $extension_type->get_object_class_names();
+        foreach ($classes as $extension_name) {
+            if (str_contains($extension_name, "\x00")) {
+                $types[] = new Null_Type();
                 continue;
             }
-
-            $lastBackslash = strrpos($extensionName, '\\');
-            if ($lastBackslash === false) {
-                $types[] = new NullType();
+            $last_backslash = strrpos($extension_name, '\\');
+            if ($last_backslash === false) {
+                $types[] = new Null_Type();
                 continue;
             }
-
-            $configurationName = substr_replace($extensionName, '\Configuration', $lastBackslash);
-            if (!$this->reflectionProvider->hasClass($configurationName)) {
-                $types[] = new NullType();
+            $configuration_name = substr_replace($extension_name, '\Configuration', $last_backslash);
+            if (!$this->reflection_provider->has_class($configuration_name)) {
+                $types[] = new Null_Type();
                 continue;
             }
-
-            $reflection = $this->reflectionProvider->getClass($configurationName);
-            if ($this->hasRequiredConstructor($reflection)) {
-                $types[] = new NullType();
+            $reflection = $this->reflection_provider->get_class($configuration_name);
+            if ($this->has_required_constructor($reflection)) {
+                $types[] = new Null_Type();
                 continue;
             }
-
-            $types[] = new ObjectType($configurationName);
+            $types[] = new Object_Type($configuration_name);
         }
-
-        return TypeCombinator::union(...$types);
+        return Type_Combinator::union(...$types);
     }
-
-    private function hasRequiredConstructor(ClassReflection $class): bool
+    private function has_required_constructor(Class_Reflection $class): bool
     {
-        if (!$class->hasConstructor()) {
+        if (!$class->has_constructor()) {
             return false;
         }
-
-        $constructor = $class->getConstructor();
-        foreach ($constructor->getVariants() as $variant) {
-            $anyRequired = false;
-            foreach ($variant->getParameters() as $parameter) {
-                if (!$parameter->isOptional()) {
-                    $anyRequired = true;
+        $constructor = $class->get_constructor();
+        foreach ($constructor->get_variants() as $variant) {
+            $any_required = false;
+            foreach ($variant->get_parameters() as $parameter) {
+                if (!$parameter->is_optional()) {
+                    $any_required = true;
                     break;
                 }
             }
-
-            if (!$anyRequired) {
+            if (!$any_required) {
                 return false;
             }
         }
-
         return true;
     }
-
 }

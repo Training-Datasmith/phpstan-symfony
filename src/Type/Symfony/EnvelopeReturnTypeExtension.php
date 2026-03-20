@@ -1,58 +1,43 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function count;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Type\Accessory\AccessoryArrayListType;
-use PHPStan\Type\ArrayType;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\Generic\GenericClassStringType;
-use PHPStan\Type\IntegerType;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-
-final class EnvelopeReturnTypeExtension implements DynamicMethodReturnTypeExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Type\Accessory\Accessory_Array_List_Type;
+use Php_Stan\Type\Array_Type;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Generic\Generic_Class_String_Type;
+use Php_Stan\Type\Integer_Type;
+use Php_Stan\Type\Object_Type;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
+final class Envelope_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    public function getClass(): string
+    public function get_class(): string
     {
         return 'Symfony\Component\Messenger\Envelope';
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === 'all';
+        return $method_reflection->get_name() === 'all';
     }
-
-    public function getTypeFromMethodCall(
-        MethodReflection $methodReflection,
-        MethodCall $methodCall,
-        Scope $scope
-    ): Type {
-        if (count($methodCall->getArgs()) === 0) {
-            return new ArrayType(
-                new GenericClassStringType(new ObjectType('Symfony\Component\Messenger\Stamp\StampInterface')),
-                TypeCombinator::intersect(new ArrayType(new IntegerType(), new ObjectType('Symfony\Component\Messenger\Stamp\StampInterface')), new AccessoryArrayListType()),
-            );
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): Type
+    {
+        if (count($method_call->get_args()) === 0) {
+            return new Array_Type(new Generic_Class_String_Type(new Object_Type('Symfony\Component\Messenger\Stamp\StampInterface')), Type_Combinator::intersect(new Array_Type(new Integer_Type(), new Object_Type('Symfony\Component\Messenger\Stamp\StampInterface')), new Accessory_Array_List_Type()));
         }
-
-        $argType = $scope->getType($methodCall->getArgs()[0]->value);
-        if (count($argType->getConstantStrings()) === 0) {
-            return TypeCombinator::intersect(new ArrayType(new IntegerType(), new ObjectType('Symfony\Component\Messenger\Stamp\StampInterface')), new AccessoryArrayListType());
+        $arg_type = $scope->get_type($method_call->get_args()[0]->value);
+        if (count($arg_type->get_constant_strings()) === 0) {
+            return Type_Combinator::intersect(new Array_Type(new Integer_Type(), new Object_Type('Symfony\Component\Messenger\Stamp\StampInterface')), new Accessory_Array_List_Type());
         }
-
-        $objectTypes = [];
-        foreach ($argType->getConstantStrings() as $constantString) {
-            $objectTypes[] = new ObjectType($constantString->getValue());
+        $object_types = [];
+        foreach ($arg_type->get_constant_strings() as $constant_string) {
+            $object_types[] = new Object_Type($constant_string->get_value());
         }
-
-        return TypeCombinator::intersect(new ArrayType(new IntegerType(), TypeCombinator::union(...$objectTypes)), new AccessoryArrayListType());
+        return Type_Combinator::intersect(new Array_Type(new Integer_Type(), Type_Combinator::union(...$object_types)), new Accessory_Array_List_Type());
     }
-
 }

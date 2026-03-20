@@ -1,27 +1,18 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function md5;
-
-use PhpParser\Node\Expr;
-use PhpParser\PrettyPrinterAbstract;
-use PHPStan\Type\Type;
-use PHPStan\Type\VerbosityLevel;
-
+use Php_Parser\Node\Expr;
+use Php_Parser\Pretty_Printer_Abstract;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Verbosity_Level;
 use function sprintf;
-
 final class Helper
 {
-    public static function createMarkerNode(Expr $expr, Type $type, PrettyPrinterAbstract $printer): \PhpParser\Node\Expr\Variable
+    public static function create_marker_node(Expr $expr, Type $type, Pretty_Printer_Abstract $printer): \Php_Parser\Node\Expr\Variable
     {
-        return new Expr\Variable(md5(sprintf(
-            '%s::%s',
-            $printer->prettyPrintExpr($expr),
-            $type->describe(VerbosityLevel::precise()),
-        )));
+        return new Expr\Variable(md5(sprintf('%s::%s', $printer->pretty_print_expr($expr), $type->describe(Verbosity_Level::precise()))));
     }
-
 }

@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-interface ServiceMapFactory
+interface Service_Map_Factory
 {
-    public function create(): ServiceMap;
-
+    public function create(): Service_Map;
 }

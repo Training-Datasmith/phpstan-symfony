@@ -1,51 +1,41 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
-namespace PHPStan\Type\Symfony;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Type\Constant\ConstantBooleanType;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\ResourceType;
-use PHPStan\Type\StringType;
-use PHPStan\Type\Type;
-
-final class RequestDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Type\Constant\Constant_Boolean_Type;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Resource_Type;
+use Php_Stan\Type\String_Type;
+use Php_Stan\Type\Type;
+final class Request_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    public function getClass(): string
+    public function get_class(): string
     {
         return 'Symfony\Component\HttpFoundation\Request';
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === 'getContent';
+        return $method_reflection->get_name() === 'getContent';
     }
-
-    public function getTypeFromMethodCall(
-        MethodReflection $methodReflection,
-        MethodCall $methodCall,
-        Scope $scope
-    ): ?Type {
-        if (!isset($methodCall->getArgs()[0])) {
-            return new StringType();
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
+    {
+        if (!isset($method_call->get_args()[0])) {
+            return new String_Type();
         }
-
-        $argType = $scope->getType($methodCall->getArgs()[0]->value);
-        $isTrueType = (new ConstantBooleanType(true))->isSuperTypeOf($argType)->result;
-        $isFalseType = (new ConstantBooleanType(false))->isSuperTypeOf($argType)->result;
-        $compareTypes = $isTrueType->compareTo($isFalseType);
-        if ($compareTypes === $isTrueType) {
-            return new ResourceType();
+        $arg_type = $scope->get_type($method_call->get_args()[0]->value);
+        $is_true_type = (new Constant_Boolean_Type(true))->is_super_type_of($arg_type)->result;
+        $is_false_type = (new Constant_Boolean_Type(false))->is_super_type_of($arg_type)->result;
+        $compare_types = $is_true_type->compare_to($is_false_type);
+        if ($compare_types === $is_true_type) {
+            return new Resource_Type();
         }
-        if ($compareTypes === $isFalseType) {
-            return new StringType();
+        if ($compare_types === $is_false_type) {
+            return new String_Type();
         }
-
         return null;
     }
-
 }

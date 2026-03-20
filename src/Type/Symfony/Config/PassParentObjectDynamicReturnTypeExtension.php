@@ -1,67 +1,48 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony\Config;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony\Config;
 
 use function count;
 use function in_array;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\ParametersAcceptorSelector;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\Symfony\Config\ValueObject\ParentObjectType;
-use PHPStan\Type\Type;
-
-final class PassParentObjectDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Reflection\Parameters_Acceptor_Selector;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Symfony\Config\Value_Object\Parent_Object_Type;
+use Php_Stan\Type\Type;
+final class Pass_Parent_Object_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
     /** @var class-string */
-    private string $className;
-
+    private string $class_name;
     /** @var string[] */
     private array $methods;
-
     /**
      * @param class-string $className
      * @param string[] $methods
      */
-    public function __construct(string $className, array $methods)
+    public function __construct(string $class_name, array $methods)
     {
-        $this->className = $className;
+        $this->class_name = $class_name;
         $this->methods = $methods;
     }
-
-    public function getClass(): string
+    public function get_class(): string
     {
-        return $this->className;
+        return $this->class_name;
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return in_array($methodReflection->getName(), $this->methods, true);
+        return in_array($method_reflection->get_name(), $this->methods, true);
     }
-
-    public function getTypeFromMethodCall(
-        MethodReflection $methodReflection,
-        MethodCall $methodCall,
-        Scope $scope
-    ): ?Type {
-        $calledOnType = $scope->getType($methodCall->var);
-
-        $defaultType = ParametersAcceptorSelector::selectFromArgs(
-            $scope,
-            $methodCall->getArgs(),
-            $methodReflection->getVariants(),
-        )->getReturnType();
-
-        $classNames = $defaultType->getObjectClassNames();
-        if (count($classNames) !== 1) {
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
+    {
+        $called_on_type = $scope->get_type($method_call->var);
+        $default_type = Parameters_Acceptor_Selector::select_from_args($scope, $method_call->get_args(), $method_reflection->get_variants())->get_return_type();
+        $class_names = $default_type->get_object_class_names();
+        if (count($class_names) !== 1) {
             return null;
         }
-
-        return new ParentObjectType($classNames[0], $calledOnType);
+        return new Parent_Object_Type($class_names[0], $called_on_type);
     }
-
 }

@@ -1,43 +1,36 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function method_exists;
-
-use PHPStan\Analyser\Scope;
-use PHPStan\Type\ArrayType;
-use PHPStan\Type\BooleanType;
-use PHPStan\Type\IntegerType;
-use PHPStan\Type\NullType;
-use PHPStan\Type\StringType;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\UnionType;
-use Symfony\Component\Console\Input\InputOption;
-
-class GetOptionTypeHelper
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Type\Array_Type;
+use Php_Stan\Type\Boolean_Type;
+use Php_Stan\Type\Integer_Type;
+use Php_Stan\Type\Null_Type;
+use Php_Stan\Type\String_Type;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
+use Php_Stan\Type\Union_Type;
+use Symfony\Component\Console\Input\Input_Option;
+class Get_Option_Type_Helper
 {
-    public function getOptionType(Scope $scope, InputOption $option): Type
+    public function get_option_type(Scope $scope, Input_Option $option): Type
     {
-        if (!$option->acceptValue()) {
-            if (method_exists($option, 'isNegatable') && $option->isNegatable()) {
-                return new UnionType([new BooleanType(), new NullType()]);
+        if (!$option->accept_value()) {
+            if (method_exists($option, 'isNegatable') && $option->is_negatable()) {
+                return new Union_Type([new Boolean_Type(), new Null_Type()]);
             }
-
-            return new BooleanType();
+            return new Boolean_Type();
         }
-
-        $optType = TypeCombinator::union(new StringType(), new NullType());
-        if ($option->isValueRequired() && ($option->isArray() || $option->getDefault() !== null)) {
-            $optType = TypeCombinator::removeNull($optType);
+        $opt_type = Type_Combinator::union(new String_Type(), new Null_Type());
+        if ($option->is_value_required() && ($option->is_array() || $option->get_default() !== null)) {
+            $opt_type = Type_Combinator::remove_null($opt_type);
         }
-        if ($option->isArray()) {
-            $optType = new ArrayType(new IntegerType(), $optType);
+        if ($option->is_array()) {
+            $opt_type = new Array_Type(new Integer_Type(), $opt_type);
         }
-
-        return TypeCombinator::union($optType, $scope->getTypeFromValue($option->getDefault()));
+        return Type_Combinator::union($opt_type, $scope->get_type_from_value($option->get_default()));
     }
-
 }

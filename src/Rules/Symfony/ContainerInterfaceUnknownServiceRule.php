@@ -1,84 +1,62 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Rules\Symfony;
 
-namespace PHPStan\Rules\Symfony;
-
-use PhpParser\Node;
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Node\Printer\Printer;
-use PHPStan\Rules\Rule;
-use PHPStan\Rules\RuleErrorBuilder;
-use PHPStan\Symfony\ServiceMap;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\Symfony\Helper;
-
+use Php_Parser\Node;
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Node\Printer\Printer;
+use Php_Stan\Rules\Rule;
+use Php_Stan\Rules\Rule_Error_Builder;
+use Php_Stan\Symfony\Service_Map;
+use Php_Stan\Type\Object_Type;
+use Php_Stan\Type\Symfony\Helper;
 use function sprintf;
-
 /**
  * @implements Rule<MethodCall>
  */
-final class ContainerInterfaceUnknownServiceRule implements Rule
+final class Container_Interface_Unknown_Service_Rule implements Rule
 {
-    private ServiceMap $serviceMap;
-
+    private Service_Map $service_map;
     private Printer $printer;
-
-    public function __construct(ServiceMap $symfonyServiceMap, Printer $printer)
+    public function __construct(Service_Map $symfony_service_map, Printer $printer)
     {
-        $this->serviceMap = $symfonyServiceMap;
+        $this->service_map = $symfony_service_map;
         $this->printer = $printer;
     }
-
-    public function getNodeType(): string
+    public function get_node_type(): string
     {
-        return MethodCall::class;
+        return Method_Call::class;
     }
-
-    public function processNode(Node $node, Scope $scope): array
+    public function process_node(Node $node, Scope $scope): array
     {
         if (!$node->name instanceof Node\Identifier) {
             return [];
         }
-
-        if ($node->name->name !== 'get' || !isset($node->getArgs()[0])) {
+        if ($node->name->name !== 'get' || !isset($node->get_args()[0])) {
             return [];
         }
-
-        $argType = $scope->getType($node->var);
-        $isContainerBagType = (new ObjectType('Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface'))->isSuperTypeOf($argType);
-        if ($isContainerBagType->yes()) {
+        $arg_type = $scope->get_type($node->var);
+        $is_container_bag_type = (new Object_Type('Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface'))->is_super_type_of($arg_type);
+        if ($is_container_bag_type->yes()) {
             return [];
         }
-
-        $isControllerType = (new ObjectType('Symfony\Bundle\FrameworkBundle\Controller\Controller'))->isSuperTypeOf($argType);
-        $isAbstractControllerType = (new ObjectType('Symfony\Bundle\FrameworkBundle\Controller\AbstractController'))->isSuperTypeOf($argType);
-        $isContainerType = (new ObjectType('Symfony\Component\DependencyInjection\ContainerInterface'))->isSuperTypeOf($argType);
-        $isPsrContainerType = (new ObjectType(\Psr\Container\ContainerInterface::class))->isSuperTypeOf($argType);
-        if (
-            !$isControllerType->yes()
-            && !$isAbstractControllerType->yes()
-            && !$isContainerType->yes()
-            && !$isPsrContainerType->yes()
-        ) {
+        $is_controller_type = (new Object_Type('Symfony\Bundle\FrameworkBundle\Controller\Controller'))->is_super_type_of($arg_type);
+        $is_abstract_controller_type = (new Object_Type('Symfony\Bundle\FrameworkBundle\Controller\AbstractController'))->is_super_type_of($arg_type);
+        $is_container_type = (new Object_Type('Symfony\Component\DependencyInjection\ContainerInterface'))->is_super_type_of($arg_type);
+        $is_psr_container_type = (new Object_Type(\Psr\Container\Container_Interface::class))->is_super_type_of($arg_type);
+        if (!$is_controller_type->yes() && !$is_abstract_controller_type->yes() && !$is_container_type->yes() && !$is_psr_container_type->yes()) {
             return [];
         }
-
-        $serviceId = $this->serviceMap::getServiceIdFromNode($node->getArgs()[0]->value, $scope);
-        if ($serviceId !== null) {
-            $service = $this->serviceMap->getService($serviceId);
-            $serviceIdType = $scope->getType($node->getArgs()[0]->value);
-            if ($service === null && !$scope->getType(Helper::createMarkerNode($node->var, $serviceIdType, $this->printer))->equals($serviceIdType)) {
-                return [
-                    RuleErrorBuilder::message(sprintf('Service "%s" is not registered in the container.', $serviceId))
-                        ->identifier('symfonyContainer.serviceNotFound')
-                        ->build(),
-                ];
+        $service_id = $this->service_map::get_service_id_from_node($node->get_args()[0]->value, $scope);
+        if ($service_id !== null) {
+            $service = $this->service_map->get_service($service_id);
+            $service_id_type = $scope->get_type($node->get_args()[0]->value);
+            if ($service === null && !$scope->get_type(Helper::create_marker_node($node->var, $service_id_type, $this->printer))->equals($service_id_type)) {
+                return [Rule_Error_Builder::message(sprintf('Service "%s" is not registered in the container.', $service_id))->identifier('symfonyContainer.serviceNotFound')->build()];
             }
         }
-
         return [];
     }
-
 }

@@ -1,69 +1,57 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function count;
 use function get_class;
-
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Symfony\ConsoleApplicationResolver;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Symfony\Console_Application_Resolver;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Object_Type;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
 use Throwable;
-
-final class CommandGetHelperDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+final class Command_Get_Helper_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    private ConsoleApplicationResolver $consoleApplicationResolver;
-
-    public function __construct(ConsoleApplicationResolver $consoleApplicationResolver)
+    private Console_Application_Resolver $console_application_resolver;
+    public function __construct(Console_Application_Resolver $console_application_resolver)
     {
-        $this->consoleApplicationResolver = $consoleApplicationResolver;
+        $this->console_application_resolver = $console_application_resolver;
     }
-
-    public function getClass(): string
+    public function get_class(): string
     {
         return \Symfony\Component\Console\Command\Command::class;
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === 'getHelper';
+        return $method_reflection->get_name() === 'getHelper';
     }
-
-    public function getTypeFromMethodCall(MethodReflection $methodReflection, MethodCall $methodCall, Scope $scope): ?Type
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
     {
-        if (!isset($methodCall->getArgs()[0])) {
+        if (!isset($method_call->get_args()[0])) {
             return null;
         }
-
-        $classReflection = $scope->getClassReflection();
-        if ($classReflection === null) {
+        $class_reflection = $scope->get_class_reflection();
+        if ($class_reflection === null) {
             return null;
         }
-
-        $argStrings = $scope->getType($methodCall->getArgs()[0]->value)->getConstantStrings();
-        if (count($argStrings) !== 1) {
+        $arg_strings = $scope->get_type($method_call->get_args()[0]->value)->get_constant_strings();
+        if (count($arg_strings) !== 1) {
             return null;
         }
-        $argName = $argStrings[0]->getValue();
-
-        $returnTypes = [];
-        foreach ($this->consoleApplicationResolver->findCommands($classReflection) as $command) {
+        $arg_name = $arg_strings[0]->get_value();
+        $return_types = [];
+        foreach ($this->console_application_resolver->find_commands($class_reflection) as $command) {
             try {
-                $command->mergeApplicationDefinition();
-                $returnTypes[] = new ObjectType(get_class($command->getHelper($argName)));
+                $command->merge_application_definition();
+                $return_types[] = new Object_Type(get_class($command->get_helper($arg_name)));
             } catch (Throwable $e) {
                 // no-op
             }
         }
-
-        return count($returnTypes) > 0 ? TypeCombinator::union(...$returnTypes) : null;
+        return count($return_types) > 0 ? Type_Combinator::union(...$return_types) : null;
     }
-
 }

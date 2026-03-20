@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-interface ParameterMapFactory
+interface Parameter_Map_Factory
 {
-    public function create(): ParameterMap;
-
+    public function create(): Parameter_Map;
 }

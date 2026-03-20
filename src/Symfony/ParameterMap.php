@@ -1,27 +1,22 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
-namespace PHPStan\Symfony;
-
-use PhpParser\Node\Expr;
-use PHPStan\Analyser\Scope;
-
+use Php_Parser\Node\Expr;
+use Php_Stan\Analyser\Scope;
 /**
  * @api
  */
-interface ParameterMap
+interface Parameter_Map
 {
     /**
      * @return ParameterDefinition[]
      */
-    public function getParameters(): array;
-
-    public function getParameter(string $key): ?ParameterDefinition;
-
+    public function get_parameters(): array;
+    public function get_parameter(string $key): ?Parameter_Definition;
     /**
      * @return array<string>
      */
-    public static function getParameterKeysFromNode(Expr $node, Scope $scope): array;
-
+    public static function get_parameter_keys_from_node(Expr $node, Scope $scope): array;
 }

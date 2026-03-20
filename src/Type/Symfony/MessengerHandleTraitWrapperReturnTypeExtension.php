@@ -1,24 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function count;
 use function in_array;
 use function is_null;
-
-use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Identifier;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Symfony\MessageMap;
-use PHPStan\Symfony\MessageMapFactory;
-use PHPStan\Type\ExpressionTypeResolverExtension;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-
+use Php_Parser\Node\Expr;
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Parser\Node\Identifier;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Reflection_Provider;
+use Php_Stan\Symfony\Message_Map;
+use Php_Stan\Symfony\Message_Map_Factory;
+use Php_Stan\Type\Expression_Type_Resolver_Extension;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
 /**
  * Configurable extension for resolving return types of methods that internally use HandleTrait.
  *
@@ -29,118 +26,93 @@ use PHPStan\Type\TypeCombinator;
  * - App\Bus\CommandBus::execute
  * - App\Bus\CommandBus::handle
  */
-final class MessengerHandleTraitWrapperReturnTypeExtension implements ExpressionTypeResolverExtension
+final class Messenger_Handle_Trait_Wrapper_Return_Type_Extension implements Expression_Type_Resolver_Extension
 {
-    private MessageMapFactory $messageMapFactory;
-
-    private ?MessageMap $messageMap = null;
-
+    private Message_Map_Factory $message_map_factory;
+    private ?Message_Map $message_map = null;
     /** @var array<string> */
     private array $wrappers;
-
-    private ReflectionProvider $reflectionProvider;
-
+    private Reflection_Provider $reflection_provider;
     /** @param array{handleTraitWrappers: array<string>}|null $messenger */
-    public function __construct(MessageMapFactory $messageMapFactory, ?array $messenger, ReflectionProvider $reflectionProvider)
+    public function __construct(Message_Map_Factory $message_map_factory, ?array $messenger, Reflection_Provider $reflection_provider)
     {
-        $this->messageMapFactory = $messageMapFactory;
+        $this->message_map_factory = $message_map_factory;
         $this->wrappers = $messenger['handleTraitWrappers'] ?? [];
-        $this->reflectionProvider = $reflectionProvider;
+        $this->reflection_provider = $reflection_provider;
     }
-
-    public function getType(Expr $expr, Scope $scope): ?Type
+    public function get_type(Expr $expr, Scope $scope): ?Type
     {
-        if (!$this->isSupported($expr, $scope)) {
+        if (!$this->is_supported($expr, $scope)) {
             return null;
         }
-
-        $args = $expr->getArgs();
+        $args = $expr->get_args();
         if (count($args) !== 1) {
             return null;
         }
-
         $arg = $args[0]->value;
-        $argClassNames = $scope->getType($arg)->getObjectClassNames();
-
-        if (count($argClassNames) === 0) {
+        $arg_class_names = $scope->get_type($arg)->get_object_class_names();
+        if (count($arg_class_names) === 0) {
             return null;
         }
-
-        $returnTypes = [];
-        foreach ($argClassNames as $argClassName) {
-            $messageMap = $this->getMessageMap();
-            $returnType = $messageMap->getTypeForClass($argClassName);
-
-            if (is_null($returnType)) {
+        $return_types = [];
+        foreach ($arg_class_names as $arg_class_name) {
+            $message_map = $this->get_message_map();
+            $return_type = $message_map->get_type_for_class($arg_class_name);
+            if (is_null($return_type)) {
                 return null;
             }
-
-            $returnTypes[] = $returnType;
+            $return_types[] = $return_type;
         }
-
-        return TypeCombinator::union(...$returnTypes);
+        return Type_Combinator::union(...$return_types);
     }
-
     /**
      * @phpstan-assert-if-true =MethodCall $expr
      */
-    private function isSupported(Expr $expr, Scope $scope): bool
+    private function is_supported(Expr $expr, Scope $scope): bool
     {
         if ($this->wrappers === []) {
             return false;
         }
-
-        if (!($expr instanceof MethodCall) || !($expr->name instanceof Identifier)) {
+        if (!$expr instanceof Method_Call || !$expr->name instanceof Identifier) {
             return false;
         }
-
-        $methodName = $expr->name->name;
-        $varType = $scope->getType($expr->var);
-        $classNames = $varType->getObjectClassNames();
-
-        if (count($classNames) === 0) {
+        $method_name = $expr->name->name;
+        $var_type = $scope->get_type($expr->var);
+        $class_names = $var_type->get_object_class_names();
+        if (count($class_names) === 0) {
             return false;
         }
-
-        foreach ($classNames as $className) {
-            if (!$this->isClassMethodSupported($className, $methodName)) {
+        foreach ($class_names as $class_name) {
+            if (!$this->is_class_method_supported($class_name, $method_name)) {
                 return false;
             }
         }
-
         return true;
     }
-
-    private function isClassMethodSupported(string $className, string $methodName): bool
+    private function is_class_method_supported(string $class_name, string $method_name): bool
     {
-        $classMethodCombination = $className . '::' . $methodName;
-
+        $class_method_combination = $class_name . '::' . $method_name;
         // Check if this exact class::method combination is configured
-        if (in_array($classMethodCombination, $this->wrappers, true)) {
+        if (in_array($class_method_combination, $this->wrappers, true)) {
             return true;
         }
-
         // Check if any interface implemented by this class::method is configured
-        if ($this->reflectionProvider->hasClass($className)) {
-            $classReflection = $this->reflectionProvider->getClass($className);
-            foreach ($classReflection->getInterfaces() as $interface) {
-                $interfaceMethodCombination = $interface->getName() . '::' . $methodName;
-                if (in_array($interfaceMethodCombination, $this->wrappers, true)) {
+        if ($this->reflection_provider->has_class($class_name)) {
+            $class_reflection = $this->reflection_provider->get_class($class_name);
+            foreach ($class_reflection->get_interfaces() as $interface) {
+                $interface_method_combination = $interface->get_name() . '::' . $method_name;
+                if (in_array($interface_method_combination, $this->wrappers, true)) {
                     return true;
                 }
             }
         }
-
         return false;
     }
-
-    private function getMessageMap(): MessageMap
+    private function get_message_map(): Message_Map
     {
-        if ($this->messageMap === null) {
-            $this->messageMap = $this->messageMapFactory->create();
+        if ($this->message_map === null) {
+            $this->message_map = $this->message_map_factory->create();
         }
-
-        return $this->messageMap;
+        return $this->message_map;
     }
-
 }

@@ -1,71 +1,58 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Type\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Type\Symfony;
 
 use function count;
-
 use InvalidArgumentException;
-use PhpParser\Node\Expr\MethodCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\MethodReflection;
-use PHPStan\Symfony\ConsoleApplicationResolver;
-use PHPStan\Type\DynamicMethodReturnTypeExtension;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-
-final class InputInterfaceGetOptionDynamicReturnTypeExtension implements DynamicMethodReturnTypeExtension
+use Php_Parser\Node\Expr\Method_Call;
+use Php_Stan\Analyser\Scope;
+use Php_Stan\Reflection\Method_Reflection;
+use Php_Stan\Symfony\Console_Application_Resolver;
+use Php_Stan\Type\Dynamic_Method_Return_Type_Extension;
+use Php_Stan\Type\Type;
+use Php_Stan\Type\Type_Combinator;
+final class Input_Interface_Get_Option_Dynamic_Return_Type_Extension implements Dynamic_Method_Return_Type_Extension
 {
-    private ConsoleApplicationResolver $consoleApplicationResolver;
-
-    private GetOptionTypeHelper $getOptionTypeHelper;
-
-    public function __construct(ConsoleApplicationResolver $consoleApplicationResolver, GetOptionTypeHelper $getOptionTypeHelper)
+    private Console_Application_Resolver $console_application_resolver;
+    private Get_Option_Type_Helper $get_option_type_helper;
+    public function __construct(Console_Application_Resolver $console_application_resolver, Get_Option_Type_Helper $get_option_type_helper)
     {
-        $this->consoleApplicationResolver = $consoleApplicationResolver;
-        $this->getOptionTypeHelper = $getOptionTypeHelper;
+        $this->console_application_resolver = $console_application_resolver;
+        $this->get_option_type_helper = $get_option_type_helper;
     }
-
-    public function getClass(): string
+    public function get_class(): string
     {
-        return \Symfony\Component\Console\Input\InputInterface::class;
+        return \Symfony\Component\Console\Input\Input_Interface::class;
     }
-
-    public function isMethodSupported(MethodReflection $methodReflection): bool
+    public function is_method_supported(Method_Reflection $method_reflection): bool
     {
-        return $methodReflection->getName() === 'getOption';
+        return $method_reflection->get_name() === 'getOption';
     }
-
-    public function getTypeFromMethodCall(MethodReflection $methodReflection, MethodCall $methodCall, Scope $scope): ?Type
+    public function get_type_from_method_call(Method_Reflection $method_reflection, Method_Call $method_call, Scope $scope): ?Type
     {
-        if (!isset($methodCall->getArgs()[0])) {
+        if (!isset($method_call->get_args()[0])) {
             return null;
         }
-
-        $classReflection = $scope->getClassReflection();
-        if ($classReflection === null) {
+        $class_reflection = $scope->get_class_reflection();
+        if ($class_reflection === null) {
             return null;
         }
-
-        $optStrings = $scope->getType($methodCall->getArgs()[0]->value)->getConstantStrings();
-        if (count($optStrings) !== 1) {
+        $opt_strings = $scope->get_type($method_call->get_args()[0]->value)->get_constant_strings();
+        if (count($opt_strings) !== 1) {
             return null;
         }
-        $optName = $optStrings[0]->getValue();
-
-        $optTypes = [];
-        foreach ($this->consoleApplicationResolver->findCommands($classReflection) as $command) {
+        $opt_name = $opt_strings[0]->get_value();
+        $opt_types = [];
+        foreach ($this->console_application_resolver->find_commands($class_reflection) as $command) {
             try {
-                $command->mergeApplicationDefinition();
-                $option = $command->getDefinition()->getOption($optName);
-                $optTypes[] = $this->getOptionTypeHelper->getOptionType($scope, $option);
+                $command->merge_application_definition();
+                $option = $command->get_definition()->get_option($opt_name);
+                $opt_types[] = $this->get_option_type_helper->get_option_type($scope, $option);
             } catch (InvalidArgumentException $e) {
                 // noop
             }
         }
-
-        return count($optTypes) > 0 ? TypeCombinator::union(...$optTypes) : null;
+        return count($opt_types) > 0 ? Type_Combinator::union(...$opt_types) : null;
     }
-
 }

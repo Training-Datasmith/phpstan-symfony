@@ -1,19 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
-namespace PHPStan\Symfony;
+declare (strict_types=1);
+namespace Php_Stan\Symfony;
 
 use function count;
-
-use PhpParser\Node\Expr;
-use PHPStan\Analyser\Scope;
-
-final class DefaultServiceMap implements ServiceMap
+use Php_Parser\Node\Expr;
+use Php_Stan\Analyser\Scope;
+final class Default_Service_Map implements Service_Map
 {
     /** @var ServiceDefinition[] */
     private array $services;
-
     /**
      * @param ServiceDefinition[] $services
      */
@@ -21,24 +17,20 @@ final class DefaultServiceMap implements ServiceMap
     {
         $this->services = $services;
     }
-
     /**
      * @return ServiceDefinition[]
      */
-    public function getServices(): array
+    public function get_services(): array
     {
         return $this->services;
     }
-
-    public function getService(string $id): ?ServiceDefinition
+    public function get_service(string $id): ?Service_Definition
     {
         return $this->services[$id] ?? null;
     }
-
-    public static function getServiceIdFromNode(Expr $node, Scope $scope): ?string
+    public static function get_service_id_from_node(Expr $node, Scope $scope): ?string
     {
-        $strings = $scope->getType($node)->getConstantStrings();
-        return count($strings) === 1 ? $strings[0]->getValue() : null;
+        $strings = $scope->get_type($node)->get_constant_strings();
+        return count($strings) === 1 ? $strings[0]->get_value() : null;
     }
-
 }
